@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: acs
+      POSTGRES_USER: acs
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U acs -d acs']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ../backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/acs
+      SPRING_DATASOURCE_USERNAME: acs
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      ACS_HMAC_SECRET: ${ACS_HMAC_SECRET}
+      ACS_GATE_KEY: ${ACS_GATE_KEY}
+      ACS_ADMIN_USERNAME: ${ACS_ADMIN_USERNAME}
+      ACS_ADMIN_PASSWORD: ${ACS_ADMIN_PASSWORD}
+      JAVA_TOOL_OPTIONS: -Xmx512m
+
+  client:
+    build:
+      context: ../frontend
+      dockerfile: ../deploy/Dockerfile.client
+    restart: unless-stopped
+    depends_on: [api]
+    environment:
+      API_ORIGIN: http://api:8080
+
+  admin:
+    build:
+      context: ../frontend
+      dockerfile: ../deploy/Dockerfile.admin
+    restart: unless-stopped
+    depends_on: [api]
+    environment:
+      API_ORIGIN: http://api:8080
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN}
+    depends_on: [client, admin, api]
+
+volumes:
+  pgdata:

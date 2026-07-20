@@ -1,0 +1,21 @@
+{
+  "name": "toast-acs-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "lint": "biome check",
+    "lint:fix": "biome check --write",
+    "format": "biome format --write",
+    "dev": "pnpm --parallel --filter './apps/*' dev",
+    "dev:client": "pnpm --filter client dev",
+    "dev:admin": "pnpm --filter admin dev",
+    "build": "pnpm --filter client build && pnpm --filter admin build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

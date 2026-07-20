@@ -1,0 +1,2 @@
+ALTER TABLE pass_request ADD COLUMN phone VARCHAR(20);
+ALTER TABLE pass_request ALTER COLUMN pass_type DROP NOT NULL;

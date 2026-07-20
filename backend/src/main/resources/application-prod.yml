@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: ${ACS_DB_URL}
+    username: ${ACS_DB_USERNAME}
+    password: ${ACS_DB_PASSWORD}
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true
+
+acs:
+  hmac-secret: ${ACS_HMAC_SECRET}
+  gate-key: ${ACS_GATE_KEY}
+  service-name: ${ACS_SERVICE_NAME}
+  gate-name: ${ACS_GATE_NAME}
+  cookie:
+    secure: true
+  admin:
+    username: ${ACS_ADMIN_USERNAME}
+    password: ${ACS_ADMIN_PASSWORD}

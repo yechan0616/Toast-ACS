@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: toast-acs-api
+  profiles:
+    default: local
+  datasource:
+    url: ${ACS_DB_URL:jdbc:postgresql://localhost:5432/acs}
+    username: ${ACS_DB_USERNAME:acs}
+    password: ${ACS_DB_PASSWORD:acs}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+server:
+  port: 8080
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+
+acs:
+  hmac-secret: ${ACS_HMAC_SECRET:dev-secret-change-me}
+  gate-key: ${ACS_GATE_KEY:dev-gate-key-change-me}
+  service-name: ${ACS_SERVICE_NAME:The Toast}
+  gate-name: ${ACS_GATE_NAME:본사 정문 출입구}
+  cookie:
+    secure: false
+  admin:
+    username: ${ACS_ADMIN_USERNAME:yechan0616@icloud.com}
+    password: ${ACS_ADMIN_PASSWORD:password1234}

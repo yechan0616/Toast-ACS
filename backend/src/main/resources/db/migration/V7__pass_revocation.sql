@@ -1,0 +1,2 @@
+ALTER TABLE pass ADD COLUMN revoked_at TIMESTAMPTZ;
+ALTER TABLE pass ADD COLUMN revoke_reason VARCHAR(500);

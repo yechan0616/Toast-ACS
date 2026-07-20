@@ -1,0 +1,22 @@
+# deps / build
+node_modules/
+.next/
+out/
+build/
+.gradle/
+*.tsbuildinfo
+
+# env / secrets
+.env
+.env.*
+!.env.example
+hardware/gate-firmware/config.h
+
+# os / ide
+.DS_Store
+.idea/
+.claude
+
+# 내부 개발 문서 (배포·공개 대상 아님)
+project_detail/
+/hardware/3d

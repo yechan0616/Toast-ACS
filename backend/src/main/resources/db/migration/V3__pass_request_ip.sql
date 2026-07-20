@@ -1,0 +1,1 @@
+ALTER TABLE pass_request ADD COLUMN ip VARCHAR(45);
