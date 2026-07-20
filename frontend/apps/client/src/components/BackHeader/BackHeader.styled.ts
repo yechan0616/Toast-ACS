@@ -18,10 +18,13 @@ export const BackButton = styled.button`
   background: none;
   color: ${({ theme }) => theme.colors.text};
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition:
+    opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:active {
-    opacity: 0.4;
+    transform: scale(0.92);
+    opacity: 0.5;
   }
 
   @media (hover: hover) {

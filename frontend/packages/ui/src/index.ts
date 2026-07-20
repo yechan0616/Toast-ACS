@@ -24,12 +24,14 @@ export { EmotionProvider } from './styles/EmotionProvider'
 export { GlobalStyles } from './styles/GlobalStyles'
 export {
   easeOutExpo,
+  easeStandard,
   fade,
   fadeUp,
   fadeUpSoft,
   pageFade,
   stagger,
   staggerSlow,
+  tap,
   viewportOnce,
 } from './styles/motion'
 export type { AppTheme } from './styles/theme'

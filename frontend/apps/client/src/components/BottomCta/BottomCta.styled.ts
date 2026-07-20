@@ -52,10 +52,14 @@ export const Cta = styled.button`
   ${({ theme }) => typo(theme.typography.mo.body.b2, theme.fontWeights.semibold)}
   font-size: 16px;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition:
+    opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:active:not(:disabled) {
-    opacity: 0.8;
+    transform: scale(0.99);
+    opacity: 0.9;
   }
 
   &:disabled {
@@ -65,7 +69,7 @@ export const Cta = styled.button`
 
   @media (hover: hover) {
     &:hover:not(:disabled) {
-      opacity: 0.9;
+      opacity: 0.94;
     }
   }
 `

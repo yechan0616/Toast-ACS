@@ -1,6 +1,7 @@
 'use client'
 
 import type { HTMLMotionProps } from 'framer-motion'
+import { tap } from '../../styles/motion'
 import * as S from './Button.styled'
 
 export type ButtonDesign = 'brand' | 'gray' | 'line' | 'danger'
@@ -35,7 +36,7 @@ export function Button({
       data-size={size}
       data-round={round ? 'true' : 'false'}
       data-full={full ? 'true' : 'false'}
-      whileTap={{ scale: 0.98 }}
+      whileTap={tap}
       {...rest}
     >
       {children}
