@@ -37,6 +37,31 @@ export const attackEntryOut = () =>
 export const attackActivate = (code: string) =>
   api.post('/api/passes/activate', { code })
 
+export const attackInvalidRequest = () => api.post('/api/passes/request', {})
+
+export const attackAdminAccess = () => api.get('/api/admin/overview')
+
+export const attackGatePoll = () =>
+  api.post('/api/gate/poll', { ultrasonic: false, passedCount: 0 })
+
+export async function runBruteForce(): Promise<AttackOutcome> {
+  let last: AttackOutcome = {
+    code: 'NONE',
+    message: '차단되지 않았어요. 요청이 통과했어요.',
+    blocked: false,
+  }
+  for (let i = 0; i < 6; i++) {
+    last = await runAttack(() =>
+      api.post('/api/admin/login', {
+        username: 'admin',
+        password: `wrong-${i}`,
+      }),
+    )
+    if (last.code === 'TOO_MANY_ATTEMPTS') break
+  }
+  return last
+}
+
 export async function attackEntryNoSession() {
   const response = await fetch('/api/entries', {
     method: 'POST',

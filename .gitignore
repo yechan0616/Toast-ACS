@@ -17,6 +17,9 @@ hardware/gate-firmware/config.h
 .idea/
 .claude
 
+# iCloud 동기화 충돌 사본 (예: "foo 2.ts")
+* [0-9].*
+
 # 내부 개발 문서 (배포·공개 대상 아님)
 project_detail/
 /hardware/3d

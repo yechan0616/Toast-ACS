@@ -1,6 +1,13 @@
+import { keyframes } from '@emotion/react'
 import styled from '@emotion/styled'
 import { typo } from '@toast-acs/ui'
 import { motion } from 'framer-motion'
+
+const pulse = keyframes`
+  0% { opacity: 0.35; }
+  50% { opacity: 1; }
+  100% { opacity: 0.35; }
+`
 
 export const Main = styled.main`
   min-height: 100dvh;
@@ -44,6 +51,18 @@ export const Note = styled.p`
   margin: 4px 0 0;
   color: ${({ theme }) => theme.colors.faint};
   ${({ theme }) => typo(theme.typography.mo.caption.c1, theme.fontWeights.regular)}
+`
+
+export const Group = styled.section`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`
+
+export const GroupTitle = styled.h2`
+  margin: 0;
+  color: ${({ theme }) => theme.colors.soft};
+  ${({ theme }) => typo(theme.typography.mo.title.t4, theme.fontWeights.semibold)}
 `
 
 export const List = styled.div`
@@ -110,6 +129,15 @@ export const Layer = styled(motion.div)`
   &[data-status='skip'] {
     color: ${({ theme }) => theme.colors.faint};
   }
+
+  &[data-status='wait'] {
+    color: ${({ theme }) => theme.colors.faint};
+  }
+
+  &[data-status='scan'] {
+    color: ${({ theme }) => theme.colors.text};
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  }
 `
 
 export const LayerMark = styled.span`
@@ -132,6 +160,12 @@ export const LayerMark = styled.span`
   &[data-status='block'] {
     background: ${({ theme }) => theme.colors.badgeDangerBg};
     color: ${({ theme }) => theme.colors.badgeDangerText};
+  }
+
+  &[data-status='scan'] {
+    background: ${({ theme }) => theme.colors.badgeInfoBg};
+    color: ${({ theme }) => theme.colors.badgeInfoText};
+    animation: ${pulse} 0.9s ease-in-out infinite;
   }
 `
 

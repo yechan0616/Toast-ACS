@@ -8,8 +8,11 @@ import { useEffect, useState } from 'react'
 import * as S from './AttackPanel.styled'
 
 const KEEPALIVE_MS = 25000
+const MIN_PENDING_MS = 900
 
 type LayerStatus = 'pass' | 'block' | 'skip'
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export function AttackPanel() {
   const [results, setResults] = useState<Record<string, AttackOutcome>>({})
@@ -43,6 +46,10 @@ export function AttackPanel() {
   }, [])
 
   const attacks = buildAttacks(registered === true, inside)
+  const groups = attacks.reduce<string[]>(
+    (acc, a) => (acc.includes(a.group) ? acc : [...acc, a.group]),
+    [],
+  )
 
   const handleRun = async (id: string) => {
     setRunning(id)
@@ -51,15 +58,21 @@ export function AttackPanel() {
       delete next[id]
       return next
     })
-    const state = await readState()
-    const attack = buildAttacks(state.registered, state.inside).find(
-      (a) => a.id === id,
-    )
-    if (attack) {
-      const outcome = await attack.run()
-      setResults((prev) => ({ ...prev, [id]: outcome }))
+    try {
+      const state = await readState()
+      const attack = buildAttacks(state.registered, state.inside).find(
+        (a) => a.id === id,
+      )
+      if (attack) {
+        const [outcome] = await Promise.all([
+          attack.run(),
+          sleep(MIN_PENDING_MS),
+        ])
+        setResults((prev) => ({ ...prev, [id]: outcome }))
+      }
+    } finally {
+      setRunning(null)
     }
-    setRunning(null)
   }
 
   return (
@@ -77,99 +90,132 @@ export function AttackPanel() {
           뒤 실행해 주세요.
         </S.Guide>
       )}
-      <S.List>
-        {attacks.map((attack) => {
-          const outcome = results[attack.id]
-          const stop = outcome
-            ? outcome.blocked
-              ? resolveStop(attack.layers, outcome.code)
-              : -1
-            : null
-          const passedElsewhere = outcome?.blocked === true && stop === -1
-          return (
-            <S.Item key={attack.id}>
-              <S.ItemHead>
-                <S.ItemLabel>{attack.label}</S.ItemLabel>
-                <S.ItemDesc>{attack.description}</S.ItemDesc>
-              </S.ItemHead>
-              <Button
-                design='line'
-                size='small'
-                onClick={() => handleRun(attack.id)}
-                disabled={running === attack.id}
-              >
-                {running === attack.id ? '통과 중…' : '공격 실행'}
-              </Button>
-              {outcome && stop !== null && (
-                <S.Pipeline>
-                  {attack.layers.map((layer, i) => {
-                    const status: LayerStatus =
-                      stop < 0
-                        ? 'pass'
-                        : i < stop
-                          ? 'pass'
-                          : i === stop
-                            ? 'block'
-                            : 'skip'
-                    const delay =
-                      status === 'skip'
-                        ? 0
-                        : Math.min(
-                            i,
-                            (stop < 0 ? attack.layers.length : stop) + 1,
-                          ) * 0.24
-                    return (
-                      <S.Layer
-                        key={layer.label}
-                        data-status={status}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay }}
-                      >
-                        <S.LayerMark data-status={status}>
-                          {status === 'pass'
-                            ? '✓'
-                            : status === 'block'
-                              ? '✗'
-                              : '·'}
-                        </S.LayerMark>
-                        {layer.label}
-                      </S.Layer>
-                    )
-                  })}
-                  {passedElsewhere && (
-                    <S.Layer
-                      data-status='block'
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: attack.layers.length * 0.24 }}
+      {groups.map((group) => (
+        <S.Group key={group}>
+          <S.GroupTitle>{group}</S.GroupTitle>
+          <S.List>
+            {attacks
+              .filter((a) => a.group === group)
+              .map((attack) => {
+                const outcome = results[attack.id]
+                const stop = outcome
+                  ? outcome.blocked
+                    ? resolveStop(attack.layers, outcome.code)
+                    : -1
+                  : null
+                const passedElsewhere = outcome?.blocked && stop === -1
+                return (
+                  <S.Item key={attack.id}>
+                    <S.ItemHead>
+                      <S.ItemLabel>{attack.label}</S.ItemLabel>
+                      <S.ItemDesc>{attack.description}</S.ItemDesc>
+                    </S.ItemHead>
+                    <Button
+                      design='line'
+                      size='small'
+                      onClick={() => handleRun(attack.id)}
+                      disabled={running === attack.id}
                     >
-                      <S.LayerMark data-status='block'>✗</S.LayerMark>
-                      서버 거부
-                    </S.Layer>
-                  )}
-                  <S.Verdict
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      delay:
-                        ((stop < 0 ? attack.layers.length : stop) + 1) * 0.24,
-                    }}
-                  >
-                    <Badge tone={outcome.blocked ? 'success' : 'danger'}>
-                      {outcome.blocked ? '차단됨' : '통과됨 — 방어 실패'}
-                    </Badge>
-                    <S.VerdictText>
-                      <S.ResultCode>{outcome.code}</S.ResultCode>
-                      {outcome.message}
-                    </S.VerdictText>
-                  </S.Verdict>
-                </S.Pipeline>
-              )}
-            </S.Item>
-          )
-        })}
-      </S.List>
+                      {running === attack.id ? '통과 중…' : '공격 실행'}
+                    </Button>
+                    {running === attack.id && (
+                      <S.Pipeline>
+                        {attack.layers.map((layer, i) => {
+                          const active = i === 0
+                          return (
+                            <S.Layer
+                              key={layer.label}
+                              data-status={active ? 'scan' : 'wait'}
+                            >
+                              <S.LayerMark
+                                data-status={active ? 'scan' : 'wait'}
+                              >
+                                {active ? '⋯' : '·'}
+                              </S.LayerMark>
+                              {layer.label}
+                            </S.Layer>
+                          )
+                        })}
+                        <S.Verdict>
+                          <S.VerdictText>
+                            서버에 요청을 보내고 응답을 기다리는 중…
+                          </S.VerdictText>
+                        </S.Verdict>
+                      </S.Pipeline>
+                    )}
+                    {running !== attack.id && outcome && stop !== null && (
+                      <S.Pipeline>
+                        {attack.layers.map((layer, i) => {
+                          const status: LayerStatus =
+                            stop < 0
+                              ? 'pass'
+                              : i < stop
+                                ? 'pass'
+                                : i === stop
+                                  ? 'block'
+                                  : 'skip'
+                          const delay =
+                            status === 'skip'
+                              ? 0
+                              : Math.min(
+                                  i,
+                                  (stop < 0 ? attack.layers.length : stop) + 1,
+                                ) * 0.14
+                          return (
+                            <S.Layer
+                              key={layer.label}
+                              data-status={status}
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay }}
+                            >
+                              <S.LayerMark data-status={status}>
+                                {status === 'pass'
+                                  ? '✓'
+                                  : status === 'block'
+                                    ? '✗'
+                                    : '·'}
+                              </S.LayerMark>
+                              {layer.label}
+                            </S.Layer>
+                          )
+                        })}
+                        {passedElsewhere && (
+                          <S.Layer
+                            data-status='block'
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: attack.layers.length * 0.14 }}
+                          >
+                            <S.LayerMark data-status='block'>✗</S.LayerMark>
+                            서버 거부
+                          </S.Layer>
+                        )}
+                        <S.Verdict
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            delay:
+                              ((stop < 0 ? attack.layers.length : stop) + 1) *
+                              0.14,
+                          }}
+                        >
+                          <Badge tone={outcome.blocked ? 'success' : 'danger'}>
+                            {outcome.blocked ? '차단됨' : '통과됨 — 방어 실패'}
+                          </Badge>
+                          <S.VerdictText>
+                            <S.ResultCode>{outcome.code}</S.ResultCode>
+                            {outcome.message}
+                          </S.VerdictText>
+                        </S.Verdict>
+                      </S.Pipeline>
+                    )}
+                  </S.Item>
+                )
+              })}
+          </S.List>
+        </S.Group>
+      ))}
       <S.Note>
         회전 토큰 방어(만료·재사용)는 시간창·동시 요청 조건이 필요해서, 게이트
         현장에서 확인해요.
