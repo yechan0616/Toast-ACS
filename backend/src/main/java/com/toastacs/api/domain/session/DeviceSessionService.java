@@ -100,7 +100,7 @@ public class DeviceSessionService {
 
     @Transactional(readOnly = true)
     public Page<DeviceSession> activeSessions(Pageable pageable) {
-        return deviceSessionRepository.findAllByRevokedAtIsNullOrderByCreatedAtDesc(pageable);
+        return deviceSessionRepository.findActiveWithPass(pageable);
     }
 
     @Transactional(readOnly = true)

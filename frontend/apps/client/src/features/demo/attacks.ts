@@ -46,10 +46,7 @@ export function resolveStop(layers: Layer[], code: string): number {
   return layers.findIndex((layer) => layer.codes.includes(code as AnyErrorCode))
 }
 
-export function buildAttacks(
-  registered: boolean,
-  inside: boolean,
-): AttackDef[] {
+export function buildAttacks(inside: boolean): AttackDef[] {
   return [
     {
       id: 'no-session',

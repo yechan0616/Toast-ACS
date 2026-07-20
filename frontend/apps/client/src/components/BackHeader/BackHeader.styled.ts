@@ -19,8 +19,8 @@ export const BackButton = styled.button`
   color: ${({ theme }) => theme.colors.text};
   cursor: pointer;
   transition:
-    opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity 0.22s ${({ theme }) => theme.easing.standard},
+    transform 0.22s ${({ theme }) => theme.easing.standard};
 
   &:active {
     transform: scale(0.92);

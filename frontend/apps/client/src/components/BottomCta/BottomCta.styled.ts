@@ -53,9 +53,9 @@ export const Cta = styled.button`
   font-size: 16px;
   cursor: pointer;
   transition:
-    opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity 0.22s ${({ theme }) => theme.easing.standard},
+    transform 0.22s ${({ theme }) => theme.easing.standard},
+    background-color 0.22s ${({ theme }) => theme.easing.standard};
 
   &:active:not(:disabled) {
     transform: scale(0.99);

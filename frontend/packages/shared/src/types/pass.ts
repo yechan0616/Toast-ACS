@@ -1,9 +1,5 @@
 export type PassType = 'TIME' | 'PERIOD'
 
-export interface ActivateRequest {
-  code: string
-}
-
 export interface ActivateResult {
   passType: PassType
   expiresAt: string

@@ -17,7 +17,7 @@ export const Input = styled.input`
   background: transparent;
   color: ${({ theme }) => theme.colors.text};
   ${({ theme }) => typo(theme.typography.mo.title.t4, theme.fontWeights.regular)}
-  transition: border-color 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 0.22s ${({ theme }) => theme.easing.standard};
 
   &::placeholder {
     color: ${({ theme }) => theme.colors.muted};

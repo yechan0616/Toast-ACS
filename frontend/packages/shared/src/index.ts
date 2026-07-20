@@ -1,6 +1,5 @@
 export { ApiError, api, request, setUnauthorizedHandler } from './api/client'
 export type {
-  ActivateRequest,
   ActivateResult,
   AdminLoginRequest,
   AdminOverview,
@@ -9,11 +8,9 @@ export type {
   AlertType,
   AnyErrorCode,
   EntryDirection,
-  EntryRequest,
   EntryResult,
   ErrorCode,
   ErrorEnvelope,
-  GateOpenRequest,
   GateStatus,
   LogEntry,
   LogPage,

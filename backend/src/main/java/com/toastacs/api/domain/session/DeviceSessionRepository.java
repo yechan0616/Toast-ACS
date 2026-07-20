@@ -14,7 +14,10 @@ public interface DeviceSessionRepository extends JpaRepository<DeviceSession, Lo
 
     long countByRevokedAtIsNull();
 
-    Page<DeviceSession> findAllByRevokedAtIsNullOrderByCreatedAtDesc(Pageable pageable);
+    @Query(value = "SELECT s FROM DeviceSession s JOIN FETCH s.pass "
+            + "WHERE s.revokedAt IS NULL ORDER BY s.createdAt DESC",
+            countQuery = "SELECT COUNT(s) FROM DeviceSession s WHERE s.revokedAt IS NULL")
+    Page<DeviceSession> findActiveWithPass(Pageable pageable);
 
     @Modifying
     @Query("UPDATE DeviceSession s SET s.lastUsedWindow = :window "

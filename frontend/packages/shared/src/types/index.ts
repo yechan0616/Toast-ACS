@@ -1,7 +1,6 @@
 export type {
   AdminLoginRequest,
   AdminOverview,
-  GateOpenRequest,
   GateStatus,
   PassApproveRequest,
   PassApproveResult,
@@ -9,7 +8,7 @@ export type {
   SessionItem,
   SuspectedPass,
 } from './admin'
-export type { EntryDirection, EntryRequest, EntryResult } from './entry'
+export type { EntryDirection, EntryResult } from './entry'
 export type { AnyErrorCode, ErrorCode, ErrorEnvelope } from './errors'
 export type {
   Alert,
@@ -21,7 +20,6 @@ export type {
   Page,
 } from './logs'
 export type {
-  ActivateRequest,
   ActivateResult,
   PassRequestCreate,
   PassRequestCreated,

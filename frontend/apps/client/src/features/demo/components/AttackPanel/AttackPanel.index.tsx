@@ -4,7 +4,7 @@ import { Badge, Button } from '@toast-acs/ui'
 import type { AttackOutcome } from 'features/demo/api'
 import { buildAttacks, resolveStop } from 'features/demo/attacks'
 import { fetchMe } from 'features/pass/api'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as S from './AttackPanel.styled'
 
 const KEEPALIVE_MS = 25000
@@ -20,17 +20,17 @@ export function AttackPanel() {
   const [registered, setRegistered] = useState<boolean | null>(null)
   const [inside, setInside] = useState(false)
 
-  const readState = async () => {
+  const readState = useCallback(async () => {
     try {
       const me = await fetchMe()
       setRegistered(true)
       setInside(me.inside)
-      return { registered: true, inside: me.inside }
+      return me.inside
     } catch {
       setRegistered(false)
-      return { registered: false, inside: false }
+      return false
     }
-  }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -43,12 +43,12 @@ export function AttackPanel() {
       active = false
       clearInterval(id)
     }
-  }, [])
+  }, [readState])
 
-  const attacks = buildAttacks(registered === true, inside)
-  const groups = attacks.reduce<string[]>(
-    (acc, a) => (acc.includes(a.group) ? acc : [...acc, a.group]),
-    [],
+  const attacks = useMemo(() => buildAttacks(inside), [inside])
+  const groups = useMemo(
+    () => Array.from(new Set(attacks.map((a) => a.group))),
+    [attacks],
   )
 
   const handleRun = async (id: string) => {
@@ -59,10 +59,8 @@ export function AttackPanel() {
       return next
     })
     try {
-      const state = await readState()
-      const attack = buildAttacks(state.registered, state.inside).find(
-        (a) => a.id === id,
-      )
+      const currentInside = await readState()
+      const attack = buildAttacks(currentInside).find((a) => a.id === id)
       if (attack) {
         const [outcome] = await Promise.all([
           attack.run(),

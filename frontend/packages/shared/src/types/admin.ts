@@ -30,10 +30,6 @@ export interface AdminOverview {
   suspectedPasses: SuspectedPass[]
 }
 
-export interface GateOpenRequest {
-  reason?: string
-}
-
 export interface PassRequestItem {
   requestId: string
   applicantName: string
