@@ -1,5 +1,6 @@
 import styled from '@emotion/styled'
 import { typo } from '@toast-acs/ui'
+import { motion } from 'framer-motion'
 
 export const Main = styled.main`
   min-height: 100dvh;
@@ -79,39 +80,79 @@ export const ItemDesc = styled.span`
   line-height: 1.45;
 `
 
-export const Expected = styled.span`
-  color: ${({ theme }) => theme.colors.body};
+export const Pipeline = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: ${({ theme }) => theme.radii.card};
+  background: ${({ theme }) => theme.colors.surface};
+`
+
+export const Layer = styled(motion.div)`
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
-  font-variant-numeric: tabular-nums;
-`
-
-export const Precondition = styled.span`
-  color: ${({ theme }) => theme.colors.faint};
-  font-size: 12px;
   line-height: 1.45;
+  color: ${({ theme }) => theme.colors.muted};
+
+  &[data-status='pass'] {
+    color: ${({ theme }) => theme.colors.body};
+  }
+
+  &[data-status='block'] {
+    color: ${({ theme }) => theme.colors.danger};
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  }
+
+  &[data-status='skip'] {
+    color: ${({ theme }) => theme.colors.faint};
+  }
 `
 
-export const Outcome = styled.div`
+export const LayerMark = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 11px;
+  flex-shrink: 0;
+  background: ${({ theme }) => theme.colors.controlGray};
+  color: ${({ theme }) => theme.colors.faint};
+
+  &[data-status='pass'] {
+    background: ${({ theme }) => theme.colors.badgeSuccessBg};
+    color: ${({ theme }) => theme.colors.badgeSuccessText};
+  }
+
+  &[data-status='block'] {
+    background: ${({ theme }) => theme.colors.badgeDangerBg};
+    color: ${({ theme }) => theme.colors.badgeDangerText};
+  }
+`
+
+export const Verdict = styled(motion.div)`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
-  font-size: 13px;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid ${({ theme }) => theme.colors.divider};
 `
 
-export const Result = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+export const VerdictText = styled.span`
+  color: ${({ theme }) => theme.colors.body};
+  font-size: 13px;
+  line-height: 1.45;
 `
 
 export const ResultCode = styled.span`
+  margin-right: 6px;
   color: ${({ theme }) => theme.colors.text};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
-  font-size: 13px;
-`
-
-export const OutcomeText = styled.span`
-  color: ${({ theme }) => theme.colors.body};
-  line-height: 1.45;
 `
