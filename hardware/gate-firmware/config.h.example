@@ -21,4 +21,4 @@
 //   맥북 로컬:        "http://<맥IP>:8080"  (맥북도 같은 핫스팟에 물릴 것)
 //   cloudflared 터널: "https://<터널주소>"   (폰은 셀룰러 그대로 사용 가능)
 #define API_BASE "https://api.acs.example.com"
-#define GATE_KEY "change-me"
+#define GATE_KEY "56a9bb063f03593dbde1ad6ef343211d"
