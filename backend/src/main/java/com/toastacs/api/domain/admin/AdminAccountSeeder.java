@@ -31,6 +31,6 @@ public class AdminAccountSeeder implements ApplicationRunner {
         if (adminAccountRepository.count() > 0) {
             return;
         }
-        adminAccountRepository.save(AdminAccount.create(username, passwordEncoder.encode(password)));
+        adminAccountRepository.save(AdminAccount.create(username, passwordEncoder.encode(password), "관리자"));
     }
 }

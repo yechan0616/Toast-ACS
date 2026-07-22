@@ -1,6 +1,6 @@
 import { keyframes } from '@emotion/react'
 import styled from '@emotion/styled'
-import { Card, typo } from '@toast-acs/ui'
+import { Card } from '@toast-acs/ui'
 import { motion } from 'framer-motion'
 
 const pulse = keyframes`
@@ -33,19 +33,13 @@ export const PageHeader = styled.header`
 export const TitleGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 6px;
-`
-
-export const TitleRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
 `
 
 export const Title = styled.h1`
   margin: 0;
-  ${({ theme }) =>
-    typo(theme.typography.pc.headline.h4, theme.fontWeights.semibold)}
+  font-size: 28px;
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  letter-spacing: -0.03em;
 `
 
 export const LivePill = styled.span`
@@ -74,15 +68,36 @@ export const LiveDot = styled.span`
 `
 
 export const Sub = styled.p`
-  margin: 0;
-  color: ${({ theme }) => theme.colors.muted};
+  margin: 6px 0 0;
+  color: ${({ theme }) => theme.colors.body};
   font-size: 14px;
 `
 
 export const HeaderActions = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+`
+
+export const GatePill = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: ${({ theme }) => theme.colors.body};
+  font-size: 13px;
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  white-space: nowrap;
+`
+
+export const GateDot = styled.span`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.colors.danger};
+
+  ${GatePill}[data-online='true'] & {
+    background: #12b76a;
+  }
 `
 
 export const Item = styled(motion.div)`
@@ -128,8 +143,8 @@ export const Notice = styled.output`
 
 export const SkeletonGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     grid-template-columns: repeat(2, minmax(0, 1fr));

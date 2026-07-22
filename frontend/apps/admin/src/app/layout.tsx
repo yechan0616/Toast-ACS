@@ -2,6 +2,8 @@ import { ColorModeScript, EmotionProvider, GlobalStyles } from '@toast-acs/ui'
 import { SessionWatcher } from 'features/auth/components/SessionWatcher/SessionWatcher.index'
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
+import { ToastProvider } from 'shared/toast/ToastProvider'
+import { AdminPalette } from './AdminPalette'
 
 export const metadata: Metadata = {
   title: 'Toast ACS · 관리자',
@@ -24,12 +26,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           rel='stylesheet'
           href='https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css'
         />
+        <link
+          rel='stylesheet'
+          href='https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap'
+        />
       </head>
       <body>
         <EmotionProvider>
           <GlobalStyles />
+          <AdminPalette />
           <SessionWatcher />
-          {children}
+          <ToastProvider>{children}</ToastProvider>
         </EmotionProvider>
       </body>
     </html>

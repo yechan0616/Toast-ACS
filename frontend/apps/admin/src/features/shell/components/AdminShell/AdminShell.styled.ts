@@ -27,7 +27,7 @@ export const Sidebar = styled.aside`
   flex-direction: column;
   padding: 20px 16px;
   border-right: 1px solid ${({ theme }) => theme.colors.border};
-  background: ${({ theme }) => theme.colors.card};
+  background: linear-gradient(180deg, #ffffff 0%, #fcfcfd 100%);
   overflow: hidden;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
@@ -231,6 +231,145 @@ export const NavBadge = styled.span`
 
 export const SidebarFoot = styled.div`
   margin-top: auto;
+  padding-top: 14px;
+  position: relative;
+`
+
+export const UserButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
+
+  @media (hover: hover) {
+    &:hover {
+      background: ${({ theme }) => theme.colors.controlGray};
+    }
+  }
+`
+
+export const UserAvatar = styled.span`
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(1, 60, 255, 0.12);
+  color: ${({ theme }) => theme.colors.accent};
+  font-size: 14px;
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+`
+
+export const UserMeta = styled.span`
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+`
+
+export const UserName = styled.span`
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 14px;
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
+
+export const UserRole = styled.span`
+  color: ${({ theme }) => theme.colors.muted};
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 78%, transparent 100%);
+`
+
+export const MoreSlot = styled.span`
+  display: inline-flex;
+  margin-left: auto;
+  flex-shrink: 0;
+
+  ${Shell}[data-collapsed='true'] & {
+    display: none;
+  }
+`
+
+export const PopoverBackdrop = styled.button`
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: default;
+`
+
+export const Popover = styled.div`
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  padding: 7px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 16px;
+  background: ${({ theme }) => theme.colors.card};
+  box-shadow:
+    0 16px 40px -12px rgba(15, 23, 42, 0.22),
+    0 4px 12px -6px rgba(15, 23, 42, 0.16);
+`
+
+export const PopoverUser = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 8px 9px;
+`
+
+export const PopoverDivider = styled.div`
+  height: 1px;
+  margin: 6px 4px;
+  background: ${({ theme }) => theme.colors.border};
+`
+
+export const PopoverItem = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.body};
+  text-align: left;
+  font-size: 14px;
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  @media (hover: hover) {
+    &:hover {
+      background: ${({ theme }) => theme.colors.controlGray};
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 `
 
 export const LogoutButton = styled.button`
@@ -238,24 +377,20 @@ export const LogoutButton = styled.button`
   align-items: center;
   gap: 10px;
   width: 100%;
-  height: 44px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: ${({ theme }) => theme.radii.card};
-  background: none;
-  color: ${({ theme }) => theme.colors.muted};
+  padding: 9px 10px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.danger};
+  text-align: left;
   font-size: 14px;
   font-weight: ${({ theme }) => theme.fontWeights.medium};
-  letter-spacing: ${({ theme }) => theme.letterSpacings.kr};
   cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+  transition: background-color 120ms ease;
 
   @media (hover: hover) {
     &:hover {
-      background: ${({ theme }) => theme.colors.controlGray};
-      color: ${({ theme }) => theme.colors.text};
+      background: ${({ theme }) => theme.colors.badgeDangerBg};
     }
   }
 `
@@ -304,7 +439,7 @@ export const Overlay = styled.div`
 
 export const Main = styled.main`
   min-width: 0;
-  background: ${({ theme }) => theme.colors.surface};
+  background: linear-gradient(180deg, #fbfbfc 0%, #f5f6f8 100%);
 `
 
 export const Content = styled.div`

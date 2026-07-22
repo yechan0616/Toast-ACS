@@ -3,6 +3,8 @@ export type {
   ActivateResult,
   AdminLoginRequest,
   AdminOverview,
+  AdminProfile,
+  AdminProfileUpdate,
   Alert,
   AlertPage,
   AlertType,

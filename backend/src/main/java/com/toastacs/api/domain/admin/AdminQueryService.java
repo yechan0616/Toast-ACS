@@ -61,6 +61,7 @@ public class AdminQueryService {
                         entryService.countTodaySince(EntryResult.DENIED, startOfToday),
                         deviceSessionService.countKillsSince(startOfToday),
                         alertService.countSince(startOfToday)),
+                entryService.dailyAllowedTrend(14),
                 suspected.stream()
                         .map(s -> new OverviewResponse.SuspectedPass(codes.get(s.getPassId()), s.getKills()))
                         .toList());

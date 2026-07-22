@@ -5,6 +5,19 @@ export interface AdminLoginRequest {
   password: string
 }
 
+export interface AdminProfile {
+  username: string
+  name: string
+  avatar: string | null
+}
+
+export interface AdminProfileUpdate {
+  name?: string
+  currentPassword?: string
+  newPassword?: string
+  avatar?: string | null
+}
+
 export interface GateStatus {
   online: boolean
   lastSeenAt: string
@@ -27,6 +40,7 @@ export interface AdminOverview {
     sessionKills: number
     alerts: number
   }
+  trend14: number[]
   suspectedPasses: SuspectedPass[]
 }
 

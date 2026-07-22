@@ -26,10 +26,29 @@ public class AdminAccount {
     @Column(name = "password_hash", nullable = false, length = 100)
     private String passwordHash;
 
-    public static AdminAccount create(String username, String passwordHash) {
+    @Column(length = 50)
+    private String name;
+
+    @Column(columnDefinition = "text")
+    private String avatar;
+
+    public static AdminAccount create(String username, String passwordHash, String name) {
         AdminAccount account = new AdminAccount();
         account.username = username;
         account.passwordHash = passwordHash;
+        account.name = name;
         return account;
+    }
+
+    public void rename(String name) {
+        this.name = name;
+    }
+
+    public void changePassword(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public void changeAvatar(String avatar) {
+        this.avatar = avatar;
     }
 }

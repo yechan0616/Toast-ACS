@@ -2,16 +2,18 @@
 
 import type { SessionItem } from '@toast-acs/shared'
 import { ApiError } from '@toast-acs/shared'
-import { Button, SectionTitle, Table, Td, TextField, Th } from '@toast-acs/ui'
 import { fetchSessions, revokePass } from 'features/dashboard/api'
 import { formatTime } from 'features/logs/alertLabels'
-import { Fragment, useCallback, useState } from 'react'
+import { useCallback, useState } from 'react'
+import * as T from 'shared/adminTable'
+import { useToast } from 'shared/toast/ToastProvider'
 import { useLoadMore } from 'shared/useLoadMore'
 import { usePolling } from 'shared/usePolling'
 import * as S from './DeviceSessions.styled'
 
 const POLL_MS = 3000
-const REVOKED_VISIBLE_MS = 5000
+const COLS = '130px minmax(240px, 1fr) 80px 180px 120px'
+const MIN_WIDTH = '860px'
 
 export function DeviceSessions() {
   const fetcher = useCallback(
@@ -28,12 +30,11 @@ export function DeviceSessions() {
     loadMore,
   } = useLoadMore(data, fetchPage, (row) => row.id)
 
+  const { notify } = useToast()
   const [confirmingId, setConfirmingId] = useState<number | null>(null)
   const [revokeReason, setRevokeReason] = useState('')
   const [actingId, setActingId] = useState<number | null>(null)
   const [revokedCodes, setRevokedCodes] = useState<string[]>([])
-  const [notice, setNotice] = useState<string | null>(null)
-  const [revokedNotice, setRevokedNotice] = useState<string | null>(null)
 
   const rows = pagedRows.filter((row) => !revokedCodes.includes(row.passCode))
 
@@ -46,19 +47,16 @@ export function DeviceSessions() {
     const reason = revokeReason.trim()
     if (!reason) return
     setActingId(row.id)
-    setNotice(null)
     try {
       await revokePass(row.passCode, reason)
       setRevokedCodes((prev) => [...prev, row.passCode])
       setConfirmingId(null)
       setRevokeReason('')
-      setRevokedNotice(`발급 코드 ${row.passCode}를 취소했어요.`)
-      setTimeout(() => {
-        setRevokedNotice(null)
-      }, REVOKED_VISIBLE_MS)
+      notify(`발급 코드 ${row.passCode}를 취소했어요.`, 'success')
     } catch (err) {
-      setNotice(
+      notify(
         err instanceof ApiError ? err.message : '강제 취소에 실패했어요.',
+        'danger',
       )
     } finally {
       setActingId(null)
@@ -66,98 +64,89 @@ export function DeviceSessions() {
   }
 
   return (
-    <S.Section>
-      <SectionTitle>활성 기기</SectionTitle>
-      {notice && <S.Notice>{notice}</S.Notice>}
-      {revokedNotice && <S.RevokedNotice>{revokedNotice}</S.RevokedNotice>}
+    <S.Page>
+      <T.PageHeader>
+        <div>
+          <T.PageTitle>활성 기기</T.PageTitle>
+          <T.PageSub>{rows.length}대 등록됨</T.PageSub>
+        </div>
+      </T.PageHeader>
+
       {rows.length > 0 ? (
-        <Table>
-          <thead>
-            <tr>
-              <Th>이용권 코드</Th>
-              <Th>기기</Th>
-              <Th>출입</Th>
-              <Th>등록 시각</Th>
-              <Th>처리</Th>
-            </tr>
-          </thead>
-          <tbody>
+        <T.TableCard>
+          <T.TableInner style={{ minWidth: MIN_WIDTH }}>
+            <T.HeadRow style={{ gridTemplateColumns: COLS }}>
+              <T.HeadCell>이용권 코드</T.HeadCell>
+              <T.HeadCell>기기</T.HeadCell>
+              <T.HeadCell>출입</T.HeadCell>
+              <T.HeadCell>등록 시각</T.HeadCell>
+              <T.HeadCell />
+            </T.HeadRow>
             {rows.map((row) => (
-              <Fragment key={row.id}>
-                <tr>
-                  <Td>{row.passCode}</Td>
-                  <S.DeviceTd title={row.userAgent}>{row.userAgent}</S.DeviceTd>
-                  <Td>{row.entryCount}회</Td>
-                  <Td>{formatTime(row.createdAt)}</Td>
-                  <Td>
-                    <Button
-                      design='line'
-                      size='tiny'
+              <T.BodyRow key={row.id}>
+                <T.RowGrid style={{ gridTemplateColumns: COLS }}>
+                  <T.Cell data-variant='strong'>{row.passCode}</T.Cell>
+                  <T.Cell data-variant='ellipsis' title={row.userAgent}>
+                    {row.userAgent}
+                  </T.Cell>
+                  <T.Cell>{row.entryCount}회</T.Cell>
+                  <T.Cell data-variant='faint'>
+                    {formatTime(row.createdAt)}
+                  </T.Cell>
+                  <T.Cell data-variant='actions'>
+                    <T.GhostButton
+                      type='button'
                       onClick={() => handleRevokeStart(row)}
                       disabled={actingId !== null || confirmingId === row.id}
                     >
                       강제 취소
-                    </Button>
-                  </Td>
-                </tr>
+                    </T.GhostButton>
+                  </T.Cell>
+                </T.RowGrid>
                 {confirmingId === row.id && (
-                  <tr>
-                    <S.FormTd colSpan={5}>
-                      <S.RevokeForm>
-                        <TextField
-                          size='small'
-                          value={revokeReason}
-                          onChange={(event) =>
-                            setRevokeReason(event.target.value)
-                          }
-                          placeholder='취소 사유 (필수)'
-                          aria-label='취소 사유'
-                        />
-                        <Button
-                          design='danger'
-                          size='small'
-                          onClick={() => handleRevoke(row)}
-                          disabled={
-                            actingId !== null || revokeReason.trim() === ''
-                          }
-                        >
-                          취소 확정
-                        </Button>
-                        <Button
-                          design='gray'
-                          size='small'
-                          onClick={() => setConfirmingId(null)}
-                          disabled={actingId !== null}
-                        >
-                          닫기
-                        </Button>
-                      </S.RevokeForm>
-                    </S.FormTd>
-                  </tr>
+                  <T.InlineForm>
+                    <T.InlineInput
+                      value={revokeReason}
+                      onChange={(event) => setRevokeReason(event.target.value)}
+                      placeholder='취소 사유 (필수)'
+                      aria-label='취소 사유'
+                    />
+                    <T.SolidButton
+                      type='button'
+                      data-tone='danger'
+                      onClick={() => handleRevoke(row)}
+                      disabled={actingId !== null || revokeReason.trim() === ''}
+                    >
+                      취소 확정
+                    </T.SolidButton>
+                    <T.QuietButton
+                      type='button'
+                      onClick={() => setConfirmingId(null)}
+                      disabled={actingId !== null}
+                    >
+                      닫기
+                    </T.QuietButton>
+                  </T.InlineForm>
                 )}
-              </Fragment>
+              </T.BodyRow>
             ))}
-          </tbody>
-        </Table>
+          </T.TableInner>
+        </T.TableCard>
       ) : (
-        <S.Empty>
+        <T.Empty>
           {error && !data
             ? '활성 기기를 불러오지 못했습니다.'
             : '활성 기기가 없습니다.'}
-        </S.Empty>
+        </T.Empty>
       )}
+
       {hasMore && (
-        <S.MoreRow>
-          <Button
-            design='line'
-            size='small'
-            onClick={loadMore}
-            disabled={loadingMore}
-          >
+        <T.Pagination>
+          <T.PageButton type='button' onClick={loadMore} disabled={loadingMore}>
             {loadingMore ? '불러오는 중…' : '더 보기'}
-          </Button>
-        </S.MoreRow>
+          </T.PageButton>
+        </T.Pagination>
       )}
-    </S.Section>
+    </S.Page>
   )
 }

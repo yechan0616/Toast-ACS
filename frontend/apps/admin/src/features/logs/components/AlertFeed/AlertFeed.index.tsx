@@ -1,14 +1,39 @@
 'use client'
 
-import { Badge, Button, SectionTitle } from '@toast-acs/ui'
 import { ALERT_TYPE_LABEL, formatTime } from 'features/logs/alertLabels'
 import { fetchAlerts } from 'features/logs/api'
 import { useCallback } from 'react'
+import * as T from 'shared/adminTable'
 import { useLoadMore } from 'shared/useLoadMore'
 import { usePolling } from 'shared/usePolling'
 import * as S from './AlertFeed.styled'
 
 const POLL_MS = 3000
+
+function AlertGlyph() {
+  return (
+    <svg
+      width='16'
+      height='16'
+      viewBox='0 0 24 24'
+      fill='none'
+      aria-hidden='true'
+    >
+      <path
+        d='M12 4l8 14H4l8-14Z'
+        stroke='currentColor'
+        strokeWidth='1.8'
+        strokeLinejoin='round'
+      />
+      <path
+        d='M12 10v4M12 16.4v.2'
+        stroke='currentColor'
+        strokeWidth='1.8'
+        strokeLinecap='round'
+      />
+    </svg>
+  )
+}
 
 export function AlertFeed() {
   const fetcher = useCallback(
@@ -27,16 +52,19 @@ export function AlertFeed() {
 
   return (
     <S.Section>
-      <SectionTitle>경보</SectionTitle>
+      <S.Title>경보</S.Title>
       {alerts.length > 0 ? (
         <S.List>
           {alerts.map((alert) => (
             <S.Item key={alert.id}>
-              <S.Top>
-                <Badge tone='danger'>{ALERT_TYPE_LABEL[alert.type]}</Badge>
-                <S.Time>{formatTime(alert.createdAt)}</S.Time>
-              </S.Top>
-              <S.Message>{alert.detail}</S.Message>
+              <S.IconCircle>
+                <AlertGlyph />
+              </S.IconCircle>
+              <S.Content>
+                <S.Type>{ALERT_TYPE_LABEL[alert.type]}</S.Type>
+                <S.Detail>{alert.detail}</S.Detail>
+              </S.Content>
+              <S.Time>{formatTime(alert.createdAt)}</S.Time>
             </S.Item>
           ))}
         </S.List>
@@ -47,14 +75,9 @@ export function AlertFeed() {
       )}
       {hasMore && (
         <S.MoreRow>
-          <Button
-            design='line'
-            size='small'
-            onClick={loadMore}
-            disabled={loadingMore}
-          >
+          <T.PageButton type='button' onClick={loadMore} disabled={loadingMore}>
             {loadingMore ? '불러오는 중…' : '더 보기'}
-          </Button>
+          </T.PageButton>
         </S.MoreRow>
       )}
     </S.Section>

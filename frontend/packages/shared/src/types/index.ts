@@ -1,6 +1,8 @@
 export type {
   AdminLoginRequest,
   AdminOverview,
+  AdminProfile,
+  AdminProfileUpdate,
   GateStatus,
   PassApproveRequest,
   PassApproveResult,

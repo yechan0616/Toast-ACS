@@ -1,169 +1,142 @@
 import styled from '@emotion/styled'
-import { brandColors, typo } from '@toast-acs/ui'
-import { motion } from 'framer-motion'
 
 export const Main = styled.main`
-  min-height: 100dvh;
-  display: grid;
-  grid-template-columns: 75% 25%;
-  background: ${({ theme }) => theme.colors.background};
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    grid-template-columns: 1fr;
-  }
-`
-
-export const Brand = styled.aside`
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 48px;
-  padding: 56px;
-  color: #ffffff;
-  background:
-    radial-gradient(
-      120% 120% at 12% 8%,
-      ${brandColors.sub1} 0%,
-      transparent 55%
-    ),
-    linear-gradient(150deg, ${brandColors.main} 0%, ${brandColors.sub1} 100%);
-  isolation: isolate;
-
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-    background-size: 44px 44px;
-    mask-image: radial-gradient(120% 80% at 80% 100%, #000 0%, transparent 70%);
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    display: none;
-  }
-`
-
-export const Wordmark = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 18px;
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
-  letter-spacing: ${({ theme }) => theme.letterSpacings.en};
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: #eef0f3;
 `
 
-export const Glyph = styled.span`
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: ${({ theme }) => theme.radii.card};
-  background: rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(4px);
-`
-
-export const BrandCopy = styled(motion.div)`
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  max-width: 520px;
-`
-
-export const Tagline = styled(motion.p)`
-  margin: 0;
-  ${({ theme }) =>
-    typo(theme.typography.pc.headline.h3, theme.fontWeights.semibold)}
-`
-
-export const TaglineSub = styled(motion.p)`
-  margin: 0;
-  color: rgba(255, 255, 255, 0.72);
-  ${({ theme }) => typo(theme.typography.pc.body.b2, theme.fontWeights.regular)}
-`
-
-export const Panel = styled.div`
-  display: grid;
-  place-items: center;
-  padding: 40px 24px;
-`
-
-export const Card = styled(motion.div)`
+export const Card = styled.div`
   width: 100%;
   max-width: 380px;
+  background: #ffffff;
+  border: 1px solid #d5d9e0;
+  border-top: 3px solid ${({ theme }) => theme.colors.accent};
+`
+
+export const Header = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 24px;
-`
-
-export const Reveal = styled(motion.div)`
-  min-width: 0;
-`
-
-export const Brandmark = styled.div`
-  display: none;
   align-items: center;
-  gap: 10px;
-  color: ${({ theme }) => theme.colors.text};
-  font-size: 17px;
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  justify-content: space-between;
+  padding: 20px 28px;
+  border-bottom: 1px solid #e6e8ee;
+`
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    display: flex;
+export const Brand = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  & img {
+    display: block;
   }
 `
 
-export const Head = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+export const BrandName = styled.span`
+  font-size: 16px;
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  letter-spacing: -0.01em;
 `
 
-export const Title = styled.h1`
-  margin: 0;
-  color: ${({ theme }) => theme.colors.text};
-  ${({ theme }) => typo(theme.typography.pc.title.t3, theme.fontWeights.semibold)}
-`
-
-export const Subtitle = styled.p`
-  margin: 0;
-  color: ${({ theme }) => theme.colors.muted};
-  ${({ theme }) => typo(theme.typography.pc.body.b3, theme.fontWeights.regular)}
+export const Console = styled.span`
+  color: #8a93a6;
+  font-size: 10px;
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 `
 
 export const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
+  padding: 28px;
 `
 
-export const Action = styled.div`
-  margin-top: 4px;
+export const Field = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`
 
-  & button {
-    border-radius: 0;
+export const Label = styled.label`
+  color: #475569;
+  font-size: 11px;
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+`
+
+export const Input = styled.input`
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #c9ced8;
+  border-radius: 0;
+  background: #ffffff;
+  color: #0b0d12;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.accent};
+    box-shadow: 0 0 0 3px rgba(1, 60, 255, 0.12);
   }
 `
 
-export const ErrorText = styled(motion.p)`
+export const Submit = styled.button`
+  height: 42px;
+  margin-top: 2px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 0;
+  background: ${({ theme }) => theme.colors.accent};
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background 140ms ease;
+
+  &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.colors.accentHover};
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+`
+
+export const ErrorText = styled.p`
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: ${({ theme }) => theme.radii.control};
-  background: ${({ theme }) => theme.colors.badgeDangerBg};
-  color: ${({ theme }) => theme.colors.badgeDangerText};
+  color: ${({ theme }) => theme.colors.danger};
   font-size: 13px;
 `
 
-export const Footer = styled.p`
-  margin: 0;
-  text-align: center;
-  color: ${({ theme }) => theme.colors.faint};
-  font-size: 12px;
+export const Footer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  border-top: 1px solid #e6e8ee;
+  background: #fafbfc;
+`
+
+export const Note = styled.span`
+  color: #8a93a6;
+  font-size: 11px;
+`
+
+export const Version = styled.span`
+  color: #b0b7c3;
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 `

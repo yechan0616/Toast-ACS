@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 export const Grid = styled(motion.div)`
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
@@ -21,7 +21,6 @@ export const Grid = styled(motion.div)`
 export const Cell = styled(motion.div)`
   min-width: 0;
   display: flex;
-  flex-direction: column;
 
   & > * {
     flex: 1;
@@ -29,24 +28,20 @@ export const Cell = styled(motion.div)`
 `
 
 export const Stat = styled(Card)`
-  display: flex;
-  flex-direction: column;
+  display: block;
   transition:
     transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.35s ease,
     box-shadow 0.35s ease;
 
   @media (hover: hover) {
     &:hover {
-      transform: translateY(-3px);
-      border-color: ${({ theme }) => theme.colors.accent};
+      transform: translateY(-2px);
     }
   }
 `
 
 export const StatLink = styled(Link)`
   display: flex;
-  flex-direction: column;
   min-width: 0;
   color: inherit;
   text-decoration: none;
@@ -56,20 +51,48 @@ export const StatLink = styled(Link)`
   }
 `
 
+export const Top = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+`
+
 export const Label = styled.span`
-  color: ${({ theme }) => theme.colors.muted};
+  color: ${({ theme }) => theme.colors.body};
   font-size: 14px;
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   white-space: nowrap;
+`
+
+export const IconBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: ${({ theme }) => theme.colors.controlGray};
+  color: ${({ theme }) => theme.colors.muted};
+
+  &[data-tone='accent'] {
+    background: rgba(1, 60, 255, 0.1);
+    color: ${({ theme }) => theme.colors.accent};
+  }
+
+  &[data-tone='danger'] {
+    background: ${({ theme }) => theme.colors.badgeDangerBg};
+    color: ${({ theme }) => theme.colors.danger};
+  }
 `
 
 export const Value = styled(motion.span)`
   display: block;
   margin-top: 18px;
   font-size: 40px;
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
   letter-spacing: -0.035em;
-  line-height: 1.1;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 
   &[data-tone='accent'] {

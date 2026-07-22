@@ -1,28 +1,19 @@
 'use client'
 
 import type { LogType } from '@toast-acs/shared'
-import type { TabItem } from '@toast-acs/ui'
-import { Button, SectionTitle, Table, Tabs, Td, Th } from '@toast-acs/ui'
 import { formatTime } from 'features/logs/alertLabels'
 import { fetchLogs } from 'features/logs/api'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect } from 'react'
+import * as T from 'shared/adminTable'
 import { useLoadMore } from 'shared/useLoadMore'
 import { usePolling } from 'shared/usePolling'
-import * as S from './AccessLog.styled'
 
 const POLL_MS = 3000
-
-const TABS: TabItem<LogType>[] = [
-  { label: '출입', value: 'ENTRY' },
-  { label: '거부', value: 'DENIED' },
-  { label: '세션 종료', value: 'SESSION_KILL' },
-]
-
+const COLS = '220px 150px 110px minmax(140px, 1fr)'
+const MIN_WIDTH = '640px'
 const DIRECTION_LABEL = { IN: '입장', OUT: '퇴장' } as const
 
-export function AccessLog() {
-  const [type, setType] = useState<LogType>('ENTRY')
-
+export function AccessLog({ type }: { type: LogType }) {
   const fetcher = useCallback(
     (signal: AbortSignal) => fetchLogs({ type, page: 0 }, signal),
     [type],
@@ -39,58 +30,50 @@ export function AccessLog() {
     (row) => row.id,
   )
 
-  const handleTypeChange = (next: LogType) => {
-    setType(next)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset paging when the log type changes
+  useEffect(() => {
     reset()
-  }
+  }, [type])
 
   return (
-    <S.Section>
-      <SectionTitle>출입 로그</SectionTitle>
-      <Tabs
-        items={TABS}
-        value={type}
-        onChange={handleTypeChange}
-        variant='button'
-      />
+    <div>
       {rows.length > 0 ? (
-        <Table>
-          <thead>
-            <tr>
-              <Th>시각</Th>
-              <Th>이용권</Th>
-              <Th>방향</Th>
-              <Th>결과</Th>
-            </tr>
-          </thead>
-          <tbody>
+        <T.TableCard>
+          <T.TableInner style={{ minWidth: MIN_WIDTH }}>
+            <T.HeadRow style={{ gridTemplateColumns: COLS }}>
+              <T.HeadCell>시각</T.HeadCell>
+              <T.HeadCell>이용권</T.HeadCell>
+              <T.HeadCell>방향</T.HeadCell>
+              <T.HeadCell>결과</T.HeadCell>
+            </T.HeadRow>
             {rows.map((row) => (
-              <tr key={row.id}>
-                <Td>{formatTime(row.createdAt)}</Td>
-                <Td>{row.passCode ?? '-'}</Td>
-                <Td>{row.direction ? DIRECTION_LABEL[row.direction] : '-'}</Td>
-                <Td>{row.denyCode ?? row.result}</Td>
-              </tr>
+              <T.BodyRow key={row.id}>
+                <T.RowGrid style={{ gridTemplateColumns: COLS }}>
+                  <T.Cell data-variant='faint'>
+                    {formatTime(row.createdAt)}
+                  </T.Cell>
+                  <T.Cell data-variant='strong'>{row.passCode ?? '-'}</T.Cell>
+                  <T.Cell>
+                    {row.direction ? DIRECTION_LABEL[row.direction] : '-'}
+                  </T.Cell>
+                  <T.Cell>{row.denyCode ?? row.result}</T.Cell>
+                </T.RowGrid>
+              </T.BodyRow>
             ))}
-          </tbody>
-        </Table>
+          </T.TableInner>
+        </T.TableCard>
       ) : (
-        <S.Empty>
+        <T.Empty>
           {error ? '로그를 불러오지 못했습니다.' : '기록이 없습니다.'}
-        </S.Empty>
+        </T.Empty>
       )}
       {hasMore && (
-        <S.MoreRow>
-          <Button
-            design='line'
-            size='small'
-            onClick={loadMore}
-            disabled={loadingMore}
-          >
+        <T.Pagination>
+          <T.PageButton type='button' onClick={loadMore} disabled={loadingMore}>
             {loadingMore ? '불러오는 중…' : '더 보기'}
-          </Button>
-        </S.MoreRow>
+          </T.PageButton>
+        </T.Pagination>
       )}
-    </S.Section>
+    </div>
   )
 }

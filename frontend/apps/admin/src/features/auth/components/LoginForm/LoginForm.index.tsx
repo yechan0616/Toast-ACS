@@ -1,13 +1,6 @@
 'use client'
 
 import { ApiError } from '@toast-acs/shared'
-import {
-  Button,
-  fadeUp,
-  fadeUpSoft,
-  staggerSlow,
-  TextField,
-} from '@toast-acs/ui'
 import { adminLogin } from 'features/auth/api'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -44,95 +37,55 @@ export function LoginForm() {
 
   return (
     <S.Main>
-      <S.Brand>
-        <S.Wordmark>
-          <S.Glyph>
-            <Image src='/brand/gf_white.png' alt='' width={26} height={26} />
-          </S.Glyph>
-          Toast ACS
-        </S.Wordmark>
-        <S.BrandCopy variants={staggerSlow} initial='hidden' animate='visible'>
-          <S.Tagline variants={fadeUpSoft}>
-            출입의 모든 순간을
-            <br />
-            기록하고 감지합니다
-          </S.Tagline>
-          <S.TaglineSub variants={fadeUpSoft}>
-            게이트 상태, 이용권, 이상 징후를 하나의 콘솔에서 관리하세요.
-          </S.TaglineSub>
-        </S.BrandCopy>
-      </S.Brand>
-
-      <S.Panel>
-        <S.Card variants={staggerSlow} initial='hidden' animate='visible'>
-          <S.Reveal variants={fadeUpSoft}>
-            <S.Brandmark>
-              <Image src='/brand/gf_color.png' alt='' width={34} height={34} />
-              Toast ACS
-            </S.Brandmark>
-          </S.Reveal>
-          <S.Reveal variants={fadeUpSoft}>
-            <S.Head>
-              <S.Title>관리자 로그인</S.Title>
-              <S.Subtitle>인증 관리 콘솔에 접속합니다</S.Subtitle>
-            </S.Head>
-          </S.Reveal>
-          <S.Form onSubmit={handleSubmit}>
-            <S.Reveal variants={fadeUpSoft}>
-              <TextField
-                label='아이디'
-                size='large'
-                variant='underline'
-                name='username'
-                value={username}
-                onChange={(event) => {
-                  setUsername(event.target.value)
-                  setError(null)
-                }}
-                autoComplete='username'
-                autoFocus
-                required
-              />
-            </S.Reveal>
-            <S.Reveal variants={fadeUpSoft}>
-              <TextField
-                label='비밀번호'
-                size='large'
-                variant='underline'
-                type='password'
-                name='password'
-                value={password}
-                onChange={(event) => {
-                  setPassword(event.target.value)
-                  setError(null)
-                }}
-                autoComplete='current-password'
-                required
-              />
-            </S.Reveal>
-            <S.Reveal variants={fadeUpSoft}>
-              <S.Action>
-                <Button type='submit' size='large' full disabled={pending}>
-                  {pending ? '확인 중…' : '로그인'}
-                </Button>
-              </S.Action>
-            </S.Reveal>
-            {error && (
-              <S.ErrorText
-                role='alert'
-                variants={fadeUp}
-                initial='hidden'
-                animate='visible'
-              >
-                {error}
-              </S.ErrorText>
-            )}
-          </S.Form>
-          <S.Reveal variants={fadeUpSoft}>
-            <S.Footer>관리자 전용 콘솔 · All access is logged</S.Footer>
-          </S.Reveal>
-        </S.Card>
-      </S.Panel>
+      <S.Card>
+        <S.Header>
+          <S.Brand>
+            <Image src='/brand/gf_color.png' alt='' width={24} height={24} />
+            <S.BrandName>Toast ACS</S.BrandName>
+          </S.Brand>
+          <S.Console>Admin Console</S.Console>
+        </S.Header>
+        <S.Form onSubmit={handleSubmit}>
+          <S.Field>
+            <S.Label htmlFor='admin-username'>아이디</S.Label>
+            <S.Input
+              id='admin-username'
+              name='username'
+              value={username}
+              onChange={(event) => {
+                setUsername(event.target.value)
+                setError(null)
+              }}
+              autoComplete='username'
+              autoFocus
+              required
+            />
+          </S.Field>
+          <S.Field>
+            <S.Label htmlFor='admin-password'>비밀번호</S.Label>
+            <S.Input
+              id='admin-password'
+              type='password'
+              name='password'
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value)
+                setError(null)
+              }}
+              autoComplete='current-password'
+              required
+            />
+          </S.Field>
+          {error && <S.ErrorText role='alert'>{error}</S.ErrorText>}
+          <S.Submit type='submit' disabled={pending}>
+            {pending ? '확인 중…' : '로그인'}
+          </S.Submit>
+        </S.Form>
+        <S.Footer>
+          <S.Note>모든 접속이 기록됩니다</S.Note>
+          <S.Version>v2.4.1</S.Version>
+        </S.Footer>
+      </S.Card>
     </S.Main>
   )
 }

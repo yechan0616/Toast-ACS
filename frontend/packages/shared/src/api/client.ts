@@ -20,7 +20,7 @@ export function setUnauthorizedHandler(handler: UnauthorizedHandler) {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
   signal?: AbortSignal
 }
@@ -93,4 +93,6 @@ export const api = {
     request<T>(path, { method: 'GET', signal }),
   post: <T>(path: string, body?: unknown, signal?: AbortSignal) =>
     request<T>(path, { method: 'POST', body, signal }),
+  patch: <T>(path: string, body?: unknown, signal?: AbortSignal) =>
+    request<T>(path, { method: 'PATCH', body, signal }),
 }

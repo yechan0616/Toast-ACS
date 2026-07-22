@@ -2,16 +2,16 @@
 
 import { Button, easeOutExpo } from '@toast-acs/ui'
 import { fetchOverview, openGate } from 'features/dashboard/api'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useToast } from 'shared/toast/ToastProvider'
 import { usePolling } from 'shared/usePolling'
-import { GateStatus } from '../GateStatus/GateStatus.index'
+import { EntryTrend } from '../EntryTrend/EntryTrend.index'
 import { LiveStatus } from '../LiveStatus/LiveStatus.index'
 import { RecentAlerts } from '../RecentAlerts/RecentAlerts.index'
 import { SuspicionBadge } from '../SuspicionBadge/SuspicionBadge.index'
 import * as S from './Dashboard.styled'
 
 const POLL_MS = 3000
-const NOTICE_MS = 4000
 const SKELETON_KEYS = [
   'inside',
   'session',
@@ -23,33 +23,24 @@ const SKELETON_KEYS = [
   'alert',
 ]
 
-interface Notice {
-  text: string
-  tone: 'success' | 'danger'
-}
-
 export function Dashboard() {
   const { data: overview, error } = usePolling(fetchOverview, POLL_MS)
   const [opening, setOpening] = useState(false)
-  const [notice, setNotice] = useState<Notice | null>(null)
+  const { notify } = useToast()
 
-  useEffect(() => {
-    if (!notice) return
-    const timer = setTimeout(() => setNotice(null), NOTICE_MS)
-    return () => clearTimeout(timer)
-  }, [notice])
+  const gateOnline = overview?.gate.online ?? false
 
   const handleOpen = async () => {
+    if (!gateOnline) {
+      notify('게이트가 오프라인이에요. 연결된 뒤에 개방할 수 있어요.', 'danger')
+      return
+    }
     setOpening(true)
-    setNotice(null)
     try {
       await openGate('관리자 원격 개방')
-      setNotice({
-        text: '개방 명령을 게이트 큐에 넣었습니다.',
-        tone: 'success',
-      })
+      notify('개방 명령을 게이트에 전달했습니다.', 'success')
     } catch {
-      setNotice({ text: '개방 명령을 보내지 못했습니다.', tone: 'danger' })
+      notify('개방 명령을 보내지 못했습니다.', 'danger')
     } finally {
       setOpening(false)
     }
@@ -59,23 +50,25 @@ export function Dashboard() {
     <S.Page>
       <S.PageHeader>
         <S.TitleGroup>
-          <S.TitleRow>
-            <S.Title>대시보드</S.Title>
-            <S.LivePill>
-              <S.LiveDot />
-              실시간
-            </S.LivePill>
-          </S.TitleRow>
+          <S.Title>대시보드</S.Title>
           <S.Sub>출입 현황과 이용권 신청을 한눈에 확인합니다.</S.Sub>
         </S.TitleGroup>
         <S.HeaderActions>
-          <Button size='small' onClick={handleOpen} disabled={opening}>
+          {overview && (
+            <S.GatePill data-online={overview.gate.online ? 'true' : 'false'}>
+              <S.GateDot />
+              {overview.gate.online ? '게이트 온라인' : '게이트 오프라인'}
+            </S.GatePill>
+          )}
+          <Button
+            size='small'
+            onClick={handleOpen}
+            disabled={opening || !gateOnline}
+          >
             {opening ? '개방 중…' : '원격 개방'}
           </Button>
         </S.HeaderActions>
       </S.PageHeader>
-
-      {notice && <S.Notice data-tone={notice.tone}>{notice.text}</S.Notice>}
 
       {overview ? (
         <>
@@ -88,9 +81,9 @@ export function Dashboard() {
             transition={{ duration: 0.9, ease: easeOutExpo, delay: 0.35 }}
           >
             <S.Columns>
-              <RecentAlerts />
+              <EntryTrend overview={overview} />
               <S.RightStack>
-                <GateStatus gate={overview.gate} />
+                <RecentAlerts />
                 <SuspicionBadge passes={overview.suspectedPasses} />
               </S.RightStack>
             </S.Columns>

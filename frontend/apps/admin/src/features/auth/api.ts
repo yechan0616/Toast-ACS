@@ -1,4 +1,8 @@
-import type { AdminLoginRequest } from '@toast-acs/shared'
+import type {
+  AdminLoginRequest,
+  AdminProfile,
+  AdminProfileUpdate,
+} from '@toast-acs/shared'
 import { api } from '@toast-acs/shared'
 
 export function adminLogin(body: AdminLoginRequest) {
@@ -7,4 +11,12 @@ export function adminLogin(body: AdminLoginRequest) {
 
 export function adminLogout() {
   return api.post<void>('/api/admin/logout')
+}
+
+export function fetchAdminProfile(signal?: AbortSignal) {
+  return api.get<AdminProfile>('/api/admin/me', signal)
+}
+
+export function updateAdminProfile(body: AdminProfileUpdate) {
+  return api.patch<AdminProfile>('/api/admin/me', body)
 }

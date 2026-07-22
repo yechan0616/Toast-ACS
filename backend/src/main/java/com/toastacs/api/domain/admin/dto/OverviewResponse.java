@@ -10,6 +10,7 @@ public record OverviewResponse(
         long totalEntries,
         GateStatus gate,
         TodayStats today,
+        List<Long> trend14,
         List<SuspectedPass> suspectedPasses) {
 
     public record TodayStats(long entries, long denied, long sessionKills, long alerts) {

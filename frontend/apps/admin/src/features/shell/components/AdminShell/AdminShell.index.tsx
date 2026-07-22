@@ -1,13 +1,16 @@
 'use client'
 
+import type { AdminProfile } from '@toast-acs/shared'
 import { Badge, pageFade } from '@toast-acs/ui'
-import { adminLogout } from 'features/auth/api'
+import { adminLogout, fetchAdminProfile } from 'features/auth/api'
+import { ProfileModal } from 'features/auth/components/ProfileModal/ProfileModal.index'
 import { fetchOverview } from 'features/dashboard/api'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
+import { AvatarContent } from 'shared/Avatar'
 import { usePolling } from 'shared/usePolling'
 import * as S from './AdminShell.styled'
 
@@ -167,8 +170,8 @@ function MenuIcon() {
 function LogoutIcon() {
   return (
     <svg
-      width='20'
-      height='20'
+      width='18'
+      height='18'
       viewBox='0 0 24 24'
       fill='none'
       aria-hidden='true'
@@ -180,6 +183,42 @@ function LogoutIcon() {
         strokeLinecap='round'
         strokeLinejoin='round'
       />
+    </svg>
+  )
+}
+
+function EditIcon() {
+  return (
+    <svg
+      width='18'
+      height='18'
+      viewBox='0 0 24 24'
+      fill='none'
+      aria-hidden='true'
+    >
+      <path
+        d='M4 20h4L18 10l-4-4L4 16v4Z'
+        stroke='currentColor'
+        strokeWidth='1.8'
+        strokeLinejoin='round'
+      />
+      <path d='M13.5 6.5l4 4' stroke='currentColor' strokeWidth='1.8' />
+    </svg>
+  )
+}
+
+function MoreIcon() {
+  return (
+    <svg
+      width='18'
+      height='18'
+      viewBox='0 0 24 24'
+      fill='#8A93A6'
+      aria-hidden='true'
+    >
+      <circle cx='5' cy='12' r='1.7' />
+      <circle cx='12' cy='12' r='1.7' />
+      <circle cx='19' cy='12' r='1.7' />
     </svg>
   )
 }
@@ -196,12 +235,26 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [profile, setProfile] = useState<AdminProfile | null>(null)
   const { data: overview } = usePolling(fetchOverview, OVERVIEW_POLL_MS)
   const pendingCount = overview?.pendingRequests ?? 0
 
   useEffect(() => {
     setCollapsed(localStorage.getItem(STORAGE_KEY) === 'collapsed')
   }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetchAdminProfile(controller.signal)
+      .then(setProfile)
+      .catch(() => {})
+    return () => controller.abort()
+  }, [])
+
+  const displayName = profile?.name ?? '관리자'
+  const displayId = profile?.username ?? ''
 
   const handleToggle = () => {
     setCollapsed((prev) => {
@@ -276,12 +329,63 @@ export function AdminShell({ children }: { children: ReactNode }) {
           ))}
         </S.Nav>
         <S.SidebarFoot>
-          <S.LogoutButton type='button' onClick={handleLogout}>
-            <S.NavIcon>
-              <LogoutIcon />
-            </S.NavIcon>
-            <S.NavLabel>로그아웃</S.NavLabel>
-          </S.LogoutButton>
+          {userMenuOpen && (
+            <>
+              <S.PopoverBackdrop
+                type='button'
+                aria-label='메뉴 닫기'
+                onClick={() => setUserMenuOpen(false)}
+              />
+              <S.Popover>
+                <S.PopoverUser>
+                  <S.UserAvatar>
+                    <AvatarContent
+                      src={profile?.avatar}
+                      fallback={displayName.charAt(0)}
+                    />
+                  </S.UserAvatar>
+                  <S.UserMeta>
+                    <S.UserName>{displayName}</S.UserName>
+                    <S.UserRole>{displayId}</S.UserRole>
+                  </S.UserMeta>
+                </S.PopoverUser>
+                <S.PopoverDivider />
+                <S.PopoverItem
+                  type='button'
+                  onClick={() => {
+                    setUserMenuOpen(false)
+                    setProfileOpen(true)
+                  }}
+                  disabled={!profile}
+                >
+                  <EditIcon />
+                  프로필 수정
+                </S.PopoverItem>
+                <S.LogoutButton type='button' onClick={handleLogout}>
+                  <LogoutIcon />
+                  로그아웃
+                </S.LogoutButton>
+              </S.Popover>
+            </>
+          )}
+          <S.UserButton
+            type='button'
+            onClick={() => setUserMenuOpen((prev) => !prev)}
+          >
+            <S.UserAvatar>
+              <AvatarContent
+                src={profile?.avatar}
+                fallback={displayName.charAt(0)}
+              />
+            </S.UserAvatar>
+            <S.UserMeta>
+              <S.UserName>{displayName}</S.UserName>
+              <S.UserRole>{displayId}</S.UserRole>
+            </S.UserMeta>
+            <S.MoreSlot>
+              <MoreIcon />
+            </S.MoreSlot>
+          </S.UserButton>
         </S.SidebarFoot>
       </S.Sidebar>
       <S.Main>
@@ -296,6 +400,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </motion.div>
         </S.Content>
       </S.Main>
+      {profileOpen && profile && (
+        <ProfileModal
+          profile={profile}
+          onClose={() => setProfileOpen(false)}
+          onSaved={setProfile}
+        />
+      )}
     </S.Shell>
   )
 }

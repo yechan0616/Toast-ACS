@@ -1,6 +1,5 @@
 'use client'
 
-import { Badge, SectionTitle } from '@toast-acs/ui'
 import { ALERT_TYPE_LABEL, formatTime } from 'features/logs/alertLabels'
 import { fetchAlerts } from 'features/logs/api'
 import { useRouter } from 'next/navigation'
@@ -10,6 +9,31 @@ import * as S from './RecentAlerts.styled'
 
 const POLL_MS = 3000
 const VISIBLE_COUNT = 5
+
+function AlertGlyph() {
+  return (
+    <svg
+      width='16'
+      height='16'
+      viewBox='0 0 24 24'
+      fill='none'
+      aria-hidden='true'
+    >
+      <path
+        d='M12 4l8 14H4l8-14Z'
+        stroke='currentColor'
+        strokeWidth='1.8'
+        strokeLinejoin='round'
+      />
+      <path
+        d='M12 10v4M12 16.4v.2'
+        stroke='currentColor'
+        strokeWidth='1.8'
+        strokeLinecap='round'
+      />
+    </svg>
+  )
+}
 
 export function RecentAlerts() {
   const router = useRouter()
@@ -24,7 +48,7 @@ export function RecentAlerts() {
   return (
     <S.Section>
       <S.Head>
-        <SectionTitle>최근 경보</SectionTitle>
+        <S.Title>최근 경보</S.Title>
         <S.MoreLink type='button' onClick={() => router.push('/logs')}>
           전체 보기
         </S.MoreLink>
@@ -33,9 +57,16 @@ export function RecentAlerts() {
         <S.List>
           {alerts.map((alert) => (
             <S.Item key={alert.id}>
-              <Badge tone='danger'>{ALERT_TYPE_LABEL[alert.type]}</Badge>
-              <S.Message>{alert.detail}</S.Message>
-              <S.Time>{formatTime(alert.createdAt)}</S.Time>
+              <S.IconCircle>
+                <AlertGlyph />
+              </S.IconCircle>
+              <S.Content>
+                <S.TypeRow>
+                  <S.Type>{ALERT_TYPE_LABEL[alert.type]}</S.Type>
+                  <S.TimePill>{formatTime(alert.createdAt)}</S.TimePill>
+                </S.TypeRow>
+                <S.Detail>{alert.detail}</S.Detail>
+              </S.Content>
             </S.Item>
           ))}
         </S.List>

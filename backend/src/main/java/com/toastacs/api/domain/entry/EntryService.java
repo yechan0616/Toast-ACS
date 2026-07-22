@@ -83,6 +83,22 @@ public class EntryService {
     }
 
     @Transactional(readOnly = true)
+    public java.util.List<Long> dailyAllowedTrend(int days) {
+        java.time.LocalDate today = java.time.LocalDate.now(KST);
+        java.time.LocalDate start = today.minusDays(days - 1L);
+        Instant from = start.atStartOfDay(KST).toInstant();
+        long[] buckets = new long[days];
+        for (Instant at : entryLogRepository.findCreatedAtByResultSince(EntryResult.ALLOWED, from)) {
+            java.time.LocalDate day = at.atZone(KST).toLocalDate();
+            int idx = (int) java.time.temporal.ChronoUnit.DAYS.between(start, day);
+            if (idx >= 0 && idx < days) {
+                buckets[idx]++;
+            }
+        }
+        return java.util.Arrays.stream(buckets).boxed().toList();
+    }
+
+    @Transactional(readOnly = true)
     public Map<Long, Long> countBySessions(Collection<Long> sessionIds, EntryResult result) {
         if (sessionIds.isEmpty()) {
             return Map.of();

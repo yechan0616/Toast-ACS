@@ -24,6 +24,10 @@ public interface EntryLogRepository extends JpaRepository<EntryLog, Long> {
     List<SessionEntryCount> countByResultGroupedBySession(@Param("result") EntryResult result,
             @Param("sessionIds") Collection<Long> sessionIds);
 
+    @Query("SELECT e.createdAt FROM EntryLog e WHERE e.result = :result AND e.createdAt >= :from")
+    List<Instant> findCreatedAtByResultSince(@Param("result") EntryResult result,
+            @Param("from") Instant from);
+
     interface SessionEntryCount {
         Long getSessionId();
 

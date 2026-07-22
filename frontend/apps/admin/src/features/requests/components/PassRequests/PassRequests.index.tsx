@@ -2,30 +2,37 @@
 
 import type { PassRequestItem, PassType } from '@toast-acs/shared'
 import { ApiError } from '@toast-acs/shared'
-import { Button, SectionTitle, Table, Td, TextField, Th } from '@toast-acs/ui'
-import { formatTime } from 'features/logs/alertLabels'
 import {
   approvePassRequest,
   fetchPassRequests,
   rejectPassRequest,
 } from 'features/requests/api'
 import { Fragment, useCallback, useState } from 'react'
+import * as T from 'shared/adminTable'
+import { useToast } from 'shared/toast/ToastProvider'
 import { useLoadMore } from 'shared/useLoadMore'
 import { usePolling } from 'shared/usePolling'
 import * as S from './PassRequests.styled'
 
 const POLL_MS = 3000
-const ISSUED_VISIBLE_MS = 10000
+const COLS = '110px 140px 60px 130px 150px minmax(180px, 1fr) 150px'
+const MIN_WIDTH = '900px'
 
 const PASS_TYPE_OPTIONS: { value: PassType; label: string }[] = [
   { value: 'TIME', label: '시간권 · 24시간' },
   { value: 'PERIOD', label: '기간권 · 30일' },
 ]
 
-interface IssuedNotice {
-  requestId: string
-  applicantName: string
-  code: string
+function formatShort(iso: string) {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return '-'
+  return date.toLocaleString('ko-KR', {
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
 }
 
 export function PassRequests() {
@@ -46,10 +53,9 @@ export function PassRequests() {
     loadMore,
   } = useLoadMore(data, fetchPage, (row) => row.requestId)
 
+  const { notify } = useToast()
   const [actingId, setActingId] = useState<string | null>(null)
   const [decidedIds, setDecidedIds] = useState<string[]>([])
-  const [issued, setIssued] = useState<IssuedNotice[]>([])
-  const [notice, setNotice] = useState<string | null>(null)
   const [approvingId, setApprovingId] = useState<string | null>(null)
   const [approveType, setApproveType] = useState<PassType | null>(null)
   const [rejectingId, setRejectingId] = useState<string | null>(null)
@@ -70,30 +76,23 @@ export function PassRequests() {
   const handleApprove = async (row: PassRequestItem) => {
     if (!approveType) return
     setActingId(row.requestId)
-    setNotice(null)
     try {
       const result = await approvePassRequest(row.requestId, approveType)
       markDecided(row.requestId)
       setApprovingId(null)
       setApproveType(null)
-      setIssued((prev) => [
-        ...prev,
-        {
-          requestId: row.requestId,
-          applicantName: row.applicantName,
-          code: result.code,
-        },
-      ])
-      setTimeout(() => {
-        setIssued((prev) =>
-          prev.filter((item) => item.requestId !== row.requestId),
-        )
-      }, ISSUED_VISIBLE_MS)
+      notify(
+        `${row.applicantName} 님 승인 완료 · 발급 코드 ${result.code}`,
+        'success',
+      )
     } catch (err) {
       if (err instanceof ApiError && err.code === 'ALREADY_DECIDED') {
         markDecided(row.requestId)
       }
-      setNotice(err instanceof ApiError ? err.message : '승인에 실패했습니다.')
+      notify(
+        err instanceof ApiError ? err.message : '승인에 실패했습니다.',
+        'danger',
+      )
     } finally {
       setActingId(null)
     }
@@ -107,175 +106,147 @@ export function PassRequests() {
 
   const handleReject = async (row: PassRequestItem) => {
     setActingId(row.requestId)
-    setNotice(null)
     try {
       await rejectPassRequest(row.requestId, rejectReason.trim() || undefined)
       markDecided(row.requestId)
       setRejectingId(null)
       setRejectReason('')
+      notify(`${row.applicantName} 님 신청을 거절했습니다.`, 'info')
     } catch (err) {
       if (err instanceof ApiError && err.code === 'ALREADY_DECIDED') {
         markDecided(row.requestId)
       }
-      setNotice(err instanceof ApiError ? err.message : '거절에 실패했습니다.')
+      notify(
+        err instanceof ApiError ? err.message : '거절에 실패했습니다.',
+        'danger',
+      )
     } finally {
       setActingId(null)
     }
   }
 
   return (
-    <S.Section>
-      <SectionTitle>이용권 신청</SectionTitle>
-      {notice && <S.Notice>{notice}</S.Notice>}
-      {issued.length > 0 && (
-        <S.IssuedList>
-          {issued.map((item) => (
-            <S.IssuedItem key={item.requestId}>
-              {item.applicantName} 님 승인 완료 — 발급 코드{' '}
-              <S.IssuedCode>{item.code}</S.IssuedCode>
-            </S.IssuedItem>
-          ))}
-        </S.IssuedList>
-      )}
+    <S.Page>
+      <T.PageHeader>
+        <div>
+          <T.PageTitle>이용권 신청</T.PageTitle>
+          <T.PageSub>{rows.length}건 대기 중</T.PageSub>
+        </div>
+      </T.PageHeader>
+
       {rows.length > 0 ? (
-        <Table>
-          <thead>
-            <tr>
-              <Th>신청자</Th>
-              <Th>연락처</Th>
-              <Th>좌석</Th>
-              <Th>IP</Th>
-              <Th>신청 시각</Th>
-              <Th>처리</Th>
-            </tr>
-          </thead>
-          <tbody>
+        <T.TableCard>
+          <T.TableInner style={{ minWidth: MIN_WIDTH }}>
+            <T.HeadRow style={{ gridTemplateColumns: COLS }}>
+              <T.HeadCell>신청자</T.HeadCell>
+              <T.HeadCell>연락처</T.HeadCell>
+              <T.HeadCell>좌석</T.HeadCell>
+              <T.HeadCell>IP</T.HeadCell>
+              <T.HeadCell>신청 시각</T.HeadCell>
+              <T.HeadCell>사유</T.HeadCell>
+              <T.HeadCell />
+            </T.HeadRow>
             {rows.map((row) => (
-              <Fragment key={row.requestId}>
-                <tr>
-                  <S.NameTd>{row.applicantName}</S.NameTd>
-                  <Td>{row.phone}</Td>
-                  <Td>{row.seat ?? '-'}</Td>
-                  <Td>{row.ip ?? '-'}</Td>
-                  <Td>{formatTime(row.createdAt)}</Td>
-                  <Td>
+              <T.BodyRow key={row.requestId}>
+                <T.RowGrid style={{ gridTemplateColumns: COLS }}>
+                  <T.Cell data-variant='strong'>{row.applicantName}</T.Cell>
+                  <T.Cell>{row.phone}</T.Cell>
+                  <T.Cell data-variant='strong'>{row.seat ?? '-'}</T.Cell>
+                  <T.Cell data-variant='faint'>{row.ip ?? '-'}</T.Cell>
+                  <T.Cell data-variant='faint'>
+                    {formatShort(row.createdAt)}
+                  </T.Cell>
+                  <T.Cell data-variant='ellipsis'>{row.reason ?? '-'}</T.Cell>
+                  <T.Cell data-variant='actions'>
                     <S.Actions>
-                      <Button
-                        size='tiny'
+                      <T.SolidButton
+                        type='button'
                         onClick={() => handleApproveStart(row)}
                         disabled={actingId !== null}
                       >
                         승인
-                      </Button>
-                      <Button
-                        design='line'
-                        size='tiny'
+                      </T.SolidButton>
+                      <T.GhostButton
+                        type='button'
                         onClick={() => handleRejectStart(row)}
                         disabled={actingId !== null}
                       >
                         거절
-                      </Button>
+                      </T.GhostButton>
                     </S.Actions>
-                  </Td>
-                </tr>
-                {row.reason && (
-                  <tr>
-                    <S.ReasonTd colSpan={6}>신청 사유: {row.reason}</S.ReasonTd>
-                  </tr>
-                )}
+                  </T.Cell>
+                </T.RowGrid>
                 {approvingId === row.requestId && (
-                  <tr>
-                    <S.FormTd colSpan={6}>
-                      <S.ApproveForm>
-                        <S.TypeOptions>
-                          {PASS_TYPE_OPTIONS.map((option) => (
-                            <Button
-                              key={option.value}
-                              design={
-                                approveType === option.value ? 'brand' : 'line'
-                              }
-                              size='small'
-                              aria-pressed={approveType === option.value}
-                              onClick={() => setApproveType(option.value)}
-                              disabled={actingId !== null}
-                            >
-                              {option.label}
-                            </Button>
-                          ))}
-                        </S.TypeOptions>
-                        <Button
-                          size='small'
-                          onClick={() => handleApprove(row)}
-                          disabled={actingId !== null || approveType === null}
-                        >
-                          승인 확정
-                        </Button>
-                        <Button
-                          design='gray'
-                          size='small'
-                          onClick={() => setApprovingId(null)}
-                        >
-                          취소
-                        </Button>
-                      </S.ApproveForm>
-                    </S.FormTd>
-                  </tr>
+                  <T.InlineForm>
+                    {PASS_TYPE_OPTIONS.map((option) => (
+                      <T.Chip
+                        key={option.value}
+                        type='button'
+                        data-active={approveType === option.value}
+                        onClick={() => setApproveType(option.value)}
+                        disabled={actingId !== null}
+                      >
+                        {option.label}
+                      </T.Chip>
+                    ))}
+                    <T.SolidButton
+                      type='button'
+                      onClick={() => handleApprove(row)}
+                      disabled={actingId !== null || approveType === null}
+                    >
+                      승인 확정
+                    </T.SolidButton>
+                    <T.QuietButton
+                      type='button'
+                      onClick={() => setApprovingId(null)}
+                    >
+                      취소
+                    </T.QuietButton>
+                  </T.InlineForm>
                 )}
                 {rejectingId === row.requestId && (
-                  <tr>
-                    <S.FormTd colSpan={6}>
-                      <S.RejectForm>
-                        <TextField
-                          size='small'
-                          value={rejectReason}
-                          onChange={(event) =>
-                            setRejectReason(event.target.value)
-                          }
-                          placeholder='거절 사유 (선택)'
-                          aria-label='거절 사유'
-                        />
-                        <Button
-                          design='danger'
-                          size='small'
-                          onClick={() => handleReject(row)}
-                          disabled={actingId !== null}
-                        >
-                          거절 확정
-                        </Button>
-                        <Button
-                          design='gray'
-                          size='small'
-                          onClick={() => setRejectingId(null)}
-                        >
-                          취소
-                        </Button>
-                      </S.RejectForm>
-                    </S.FormTd>
-                  </tr>
+                  <T.InlineForm>
+                    <T.InlineInput
+                      value={rejectReason}
+                      onChange={(event) => setRejectReason(event.target.value)}
+                      placeholder='거절 사유 (선택)'
+                      aria-label='거절 사유'
+                    />
+                    <T.SolidButton
+                      type='button'
+                      data-tone='danger'
+                      onClick={() => handleReject(row)}
+                      disabled={actingId !== null}
+                    >
+                      거절 확정
+                    </T.SolidButton>
+                    <T.QuietButton
+                      type='button'
+                      onClick={() => setRejectingId(null)}
+                    >
+                      취소
+                    </T.QuietButton>
+                  </T.InlineForm>
                 )}
-              </Fragment>
+              </T.BodyRow>
             ))}
-          </tbody>
-        </Table>
+          </T.TableInner>
+        </T.TableCard>
       ) : (
-        <S.Empty>
+        <T.Empty>
           {error && !data
             ? '신청 목록을 불러오지 못했습니다.'
             : '대기 중인 신청이 없습니다.'}
-        </S.Empty>
+        </T.Empty>
       )}
+
       {hasMore && (
-        <S.MoreRow>
-          <Button
-            design='line'
-            size='small'
-            onClick={loadMore}
-            disabled={loadingMore}
-          >
+        <T.Pagination>
+          <T.PageButton type='button' onClick={loadMore} disabled={loadingMore}>
             {loadingMore ? '불러오는 중…' : '더 보기'}
-          </Button>
-        </S.MoreRow>
+          </T.PageButton>
+        </T.Pagination>
       )}
-    </S.Section>
+    </S.Page>
   )
 }
