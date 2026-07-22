@@ -4,7 +4,7 @@
 
 QR 티켓은 캡처 한 장이면 남에게 넘어가요. 그렇게 암표가 생겨요. Toast ACS는 QR을 화면에 띄우지 않아요. 관객 폰이 서버에 직접 입장을 요청하고, 티켓은 처음 등록한 기기에 잠겨요. 캡처할 것도, 넘겨줄 것도 없어요.
 
-자세한 소개와 데모는 [yechan.app/?project=toast-acs](https://www.yechan.app/?project=toast-acs)에서 볼 수 있어요.
+자세한 소개와 데모는 [자세히 보기](https://www.yechan.app/?project=toast-acs)에서 볼 수 있어요.
 
 2026 학생 SW 융합 해커톤 출품작이에요.
 
