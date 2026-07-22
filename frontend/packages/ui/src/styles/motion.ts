@@ -59,4 +59,44 @@ export const tap = {
   transition: { duration: 0.2, ease: easeStandard },
 } as const
 
+export const springSoft = {
+  type: 'spring',
+  stiffness: 300,
+  damping: 26,
+  mass: 0.8,
+} as const
+
+export const springSnappy = {
+  type: 'spring',
+  stiffness: 420,
+  damping: 30,
+} as const
+
+// Cards / tiles: gentle scale + rise with spring settle
+export const cardPop: Variants = {
+  hidden: { opacity: 0, y: 16, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: springSoft,
+  },
+}
+
+// List/table rows: slide in from the leading edge
+export const rowSlide: Variants = {
+  hidden: { opacity: 0, x: -12 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.5, ease: easeOutExpo },
+  },
+}
+
+// Tighter stagger container for grids and rows
+export const gridStagger: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.055, delayChildren: 0.04 } },
+}
+
 export const viewportOnce = { once: true, margin: '0px 0px -60px' } as const

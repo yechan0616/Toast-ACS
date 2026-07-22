@@ -1,8 +1,9 @@
 'use client'
 
 import type { AdminOverview } from '@toast-acs/shared'
-import { easeOutExpo, fadeUpSoft, staggerSlow } from '@toast-acs/ui'
+import { cardPop, gridStagger } from '@toast-acs/ui'
 import type { ReactNode } from 'react'
+import { useCountUp } from 'shared/useCountUp'
 import * as S from './LiveStatus.styled'
 
 interface Stat {
@@ -11,6 +12,17 @@ interface Stat {
   tone?: 'accent' | 'danger'
   href?: string
   icon: ReactNode
+}
+
+function StatValue({
+  value,
+  tone,
+}: {
+  value: number
+  tone: 'accent' | 'danger' | 'none'
+}) {
+  const shown = useCountUp(value)
+  return <S.Value data-tone={tone}>{shown.toLocaleString()}</S.Value>
 }
 
 function PeopleIcon() {
@@ -149,30 +161,26 @@ export function LiveStatus({ overview }: { overview: AdminOverview }) {
   ]
 
   return (
-    <S.Grid variants={staggerSlow} initial='hidden' animate='visible'>
+    <S.Grid variants={gridStagger} initial='hidden' animate='visible'>
       {stats.map((stat) => {
         const active = Boolean(stat.tone && stat.value > 0)
+        const tone = active && stat.tone ? stat.tone : 'none'
         const tile = (
           <S.Stat>
             <S.Top>
               <S.Label>{stat.label}</S.Label>
-              <S.IconBadge data-tone={active ? stat.tone : 'none'}>
-                {stat.icon}
-              </S.IconBadge>
+              <S.IconBadge data-tone={tone}>{stat.icon}</S.IconBadge>
             </S.Top>
-            <S.Value
-              key={stat.value}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: easeOutExpo }}
-              data-tone={active ? stat.tone : 'none'}
-            >
-              {stat.value.toLocaleString()}
-            </S.Value>
+            <StatValue value={stat.value} tone={tone} />
           </S.Stat>
         )
         return (
-          <S.Cell key={stat.label} variants={fadeUpSoft}>
+          <S.Cell
+            key={stat.label}
+            variants={cardPop}
+            whileHover={{ y: -3 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 26 }}
+          >
             {stat.href ? (
               <S.StatLink href={stat.href}>{tile}</S.StatLink>
             ) : (

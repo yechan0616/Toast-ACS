@@ -64,7 +64,7 @@ export function AccessLog({ type }: { type: LogType }) {
         </T.TableCard>
       ) : (
         <T.Empty>
-          {error ? '로그를 불러오지 못했습니다.' : '기록이 없습니다.'}
+          {error ? '로그를 불러오지 못했어요.' : '아직 기록이 없어요.'}
         </T.Empty>
       )}
       {hasMore && (

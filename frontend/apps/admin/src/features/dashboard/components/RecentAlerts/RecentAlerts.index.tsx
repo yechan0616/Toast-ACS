@@ -72,7 +72,9 @@ export function RecentAlerts() {
         </S.List>
       ) : (
         <S.Empty>
-          {error ? '경보를 불러오지 못했습니다.' : '최근 경보가 없습니다.'}
+          {error
+            ? '경보를 불러오지 못했어요.'
+            : '최근 아직 올라온 경보가 없어요.'}
         </S.Empty>
       )}
     </S.Section>

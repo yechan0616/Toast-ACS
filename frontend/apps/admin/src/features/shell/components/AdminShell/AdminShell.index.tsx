@@ -288,7 +288,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <S.BrandGlyph>
           <BrandLogo />
         </S.BrandGlyph>
-        <S.Brand>Toast ACS</S.Brand>
         <S.AdminPill>Admin</S.AdminPill>
       </S.MobileBar>
       {menuOpen && <S.Overlay onClick={() => setMenuOpen(false)} />}
@@ -298,7 +297,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <S.BrandGlyph>
               <BrandLogo />
             </S.BrandGlyph>
-            <S.Brand>Toast ACS</S.Brand>
             <S.AdminPill>Admin</S.AdminPill>
           </S.BrandGroup>
           <S.CollapseButton
@@ -311,22 +309,31 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </S.SidebarHead>
         <S.MenuLabel>메뉴</S.MenuLabel>
         <S.Nav>
-          {NAV_ITEMS.map((item) => (
-            <S.NavItem
-              key={item.href}
-              href={item.href}
-              data-active={isActive(item.href) ? 'true' : 'false'}
-              onClick={() => setMenuOpen(false)}
-            >
-              <S.NavIcon>{item.icon}</S.NavIcon>
-              <S.NavLabel>{item.label}</S.NavLabel>
-              {item.href === '/requests' && pendingCount > 0 && (
-                <S.NavBadge>
-                  <Badge tone='danger'>{pendingCount}</Badge>
-                </S.NavBadge>
-              )}
-            </S.NavItem>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const active = isActive(item.href)
+            return (
+              <S.NavItem
+                key={item.href}
+                href={item.href}
+                data-active={active ? 'true' : 'false'}
+                onClick={() => setMenuOpen(false)}
+              >
+                {active && (
+                  <S.NavActiveBg
+                    layoutId='nav-active'
+                    transition={{ type: 'spring', stiffness: 500, damping: 38 }}
+                  />
+                )}
+                <S.NavIcon>{item.icon}</S.NavIcon>
+                <S.NavLabel>{item.label}</S.NavLabel>
+                {item.href === '/requests' && pendingCount > 0 && (
+                  <S.NavBadge>
+                    <Badge tone='danger'>{pendingCount}</Badge>
+                  </S.NavBadge>
+                )}
+              </S.NavItem>
+            )
+          })}
         </S.Nav>
         <S.SidebarFoot>
           {userMenuOpen && (

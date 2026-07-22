@@ -70,7 +70,7 @@ export function AlertFeed() {
         </S.List>
       ) : (
         <S.Empty>
-          {error ? '경보를 불러오지 못했습니다.' : '경보가 없습니다.'}
+          {error ? '경보를 불러오지 못했어요.' : '아직 올라온 경보가 없어요.'}
         </S.Empty>
       )}
       {hasMore && (

@@ -38,9 +38,12 @@ export function Dashboard() {
     setOpening(true)
     try {
       await openGate('관리자 원격 개방')
-      notify('개방 명령을 게이트에 전달했습니다.', 'success')
+      notify('게이트에 개방 신호를 보냈어요.', 'success')
     } catch {
-      notify('개방 명령을 보내지 못했습니다.', 'danger')
+      notify(
+        '개방 신호를 보내지 못했어요. 잠시 후 다시 시도해 주세요.',
+        'danger',
+      )
     } finally {
       setOpening(false)
     }
@@ -51,7 +54,7 @@ export function Dashboard() {
       <S.PageHeader>
         <S.TitleGroup>
           <S.Title>대시보드</S.Title>
-          <S.Sub>출입 현황과 이용권 신청을 한눈에 확인합니다.</S.Sub>
+          <S.Sub>지금 게이트에서 일어나는 일을 한눈에 볼 수 있어요.</S.Sub>
         </S.TitleGroup>
         <S.HeaderActions>
           {overview && (

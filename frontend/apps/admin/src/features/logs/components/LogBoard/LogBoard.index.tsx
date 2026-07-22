@@ -21,7 +21,9 @@ export function LogBoard() {
       <T.PageHeader>
         <div>
           <T.PageTitle>출입 · 경보 로그</T.PageTitle>
-          <T.PageSub>출입 이력과 거부·세션 종료, 경보를 확인합니다.</T.PageSub>
+          <T.PageSub>
+            출입과 거부, 세션 종료, 경보를 모두 여기서 볼 수 있어요.
+          </T.PageSub>
         </div>
         <T.Segmented>
           {TABS.map((tab) => (

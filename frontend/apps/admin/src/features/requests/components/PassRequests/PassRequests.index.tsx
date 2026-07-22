@@ -82,7 +82,7 @@ export function PassRequests() {
       setApprovingId(null)
       setApproveType(null)
       notify(
-        `${row.applicantName} 님 승인 완료 · 발급 코드 ${result.code}`,
+        `${row.applicantName} 님에게 이용권을 발급했어요 · 코드 ${result.code}`,
         'success',
       )
     } catch (err) {
@@ -90,7 +90,9 @@ export function PassRequests() {
         markDecided(row.requestId)
       }
       notify(
-        err instanceof ApiError ? err.message : '승인에 실패했습니다.',
+        err instanceof ApiError
+          ? err.message
+          : '승인하지 못했어요. 잠시 후 다시 시도해 주세요.',
         'danger',
       )
     } finally {
@@ -111,13 +113,15 @@ export function PassRequests() {
       markDecided(row.requestId)
       setRejectingId(null)
       setRejectReason('')
-      notify(`${row.applicantName} 님 신청을 거절했습니다.`, 'info')
+      notify(`${row.applicantName} 님 신청을 거절했어요.`, 'info')
     } catch (err) {
       if (err instanceof ApiError && err.code === 'ALREADY_DECIDED') {
         markDecided(row.requestId)
       }
       notify(
-        err instanceof ApiError ? err.message : '거절에 실패했습니다.',
+        err instanceof ApiError
+          ? err.message
+          : '거절하지 못했어요. 잠시 후 다시 시도해 주세요.',
         'danger',
       )
     } finally {
@@ -130,7 +134,7 @@ export function PassRequests() {
       <T.PageHeader>
         <div>
           <T.PageTitle>이용권 신청</T.PageTitle>
-          <T.PageSub>{rows.length}건 대기 중</T.PageSub>
+          <T.PageSub>{rows.length}건이 승인을 기다리고 있어요</T.PageSub>
         </div>
       </T.PageHeader>
 
@@ -235,8 +239,8 @@ export function PassRequests() {
       ) : (
         <T.Empty>
           {error && !data
-            ? '신청 목록을 불러오지 못했습니다.'
-            : '대기 중인 신청이 없습니다.'}
+            ? '신청 목록을 불러오지 못했어요.'
+            : '지금은 기다리는 신청이 없어요.'}
         </T.Empty>
       )}
 

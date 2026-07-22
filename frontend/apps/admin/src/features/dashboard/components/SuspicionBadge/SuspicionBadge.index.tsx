@@ -5,17 +5,15 @@ import { ApiError } from '@toast-acs/shared'
 import { Badge, Button, TextField } from '@toast-acs/ui'
 import { revokePass } from 'features/dashboard/api'
 import { useState } from 'react'
+import { useToast } from 'shared/toast/ToastProvider'
 import * as S from './SuspicionBadge.styled'
 
-const REVOKED_VISIBLE_MS = 5000
-
 export function SuspicionBadge({ passes }: { passes: SuspectedPass[] }) {
+  const { notify } = useToast()
   const [confirmingCode, setConfirmingCode] = useState<string | null>(null)
   const [reason, setReason] = useState('')
   const [acting, setActing] = useState(false)
   const [revokedCodes, setRevokedCodes] = useState<string[]>([])
-  const [notice, setNotice] = useState<string | null>(null)
-  const [revokedNotice, setRevokedNotice] = useState<string | null>(null)
 
   const visible = passes.filter((pass) => !revokedCodes.includes(pass.code))
   const suspected = visible.length > 0
@@ -23,26 +21,24 @@ export function SuspicionBadge({ passes }: { passes: SuspectedPass[] }) {
   const handleRevokeStart = (pass: SuspectedPass) => {
     setConfirmingCode(pass.code)
     setReason('')
-    setNotice(null)
   }
 
   const handleRevoke = async (pass: SuspectedPass) => {
     const trimmed = reason.trim()
     if (!trimmed) return
     setActing(true)
-    setNotice(null)
     try {
       await revokePass(pass.code, trimmed)
       setRevokedCodes((prev) => [...prev, pass.code])
       setConfirmingCode(null)
       setReason('')
-      setRevokedNotice(`발급 코드 ${pass.code}를 취소했어요.`)
-      setTimeout(() => {
-        setRevokedNotice(null)
-      }, REVOKED_VISIBLE_MS)
+      notify(`발급 코드 ${pass.code}를 취소했어요.`, 'success')
     } catch (err) {
-      setNotice(
-        err instanceof ApiError ? err.message : '강제 취소에 실패했어요.',
+      notify(
+        err instanceof ApiError
+          ? err.message
+          : '취소하지 못했어요. 잠시 후 다시 시도해 주세요.',
+        'danger',
       )
     } finally {
       setActing(false)
@@ -54,8 +50,6 @@ export function SuspicionBadge({ passes }: { passes: SuspectedPass[] }) {
       <Badge tone={suspected ? 'danger' : 'success'}>
         {suspected ? '공유 의심' : '이상 없음'}
       </Badge>
-      {notice && <S.Notice>{notice}</S.Notice>}
-      {revokedNotice && <S.RevokedNotice>{revokedNotice}</S.RevokedNotice>}
       {suspected && (
         <S.List>
           {visible.map((pass) => (

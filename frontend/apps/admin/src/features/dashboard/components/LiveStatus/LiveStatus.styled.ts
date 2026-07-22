@@ -29,13 +29,14 @@ export const Cell = styled(motion.div)`
 
 export const Stat = styled(Card)`
   display: block;
-  transition:
-    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.35s ease;
+  height: 100%;
+  transition: box-shadow 0.35s ease;
 
   @media (hover: hover) {
-    &:hover {
-      transform: translateY(-2px);
+    ${Cell}:hover & {
+      box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.05),
+        0 18px 36px -18px rgba(1, 60, 255, 0.28);
     }
   }
 `

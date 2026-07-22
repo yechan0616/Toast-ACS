@@ -23,12 +23,17 @@ export { ColorModeScript } from './styles/ColorModeScript'
 export { EmotionProvider } from './styles/EmotionProvider'
 export { GlobalStyles } from './styles/GlobalStyles'
 export {
+  cardPop,
   easeOutExpo,
   easeStandard,
   fade,
   fadeUp,
   fadeUpSoft,
+  gridStagger,
   pageFade,
+  rowSlide,
+  springSnappy,
+  springSoft,
   stagger,
   staggerSlow,
   tap,

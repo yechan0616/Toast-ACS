@@ -1,4 +1,5 @@
 import styled from '@emotion/styled'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 
 export const Shell = styled.div`
@@ -157,6 +158,7 @@ export const Nav = styled.nav`
 `
 
 export const NavItem = styled(Link)`
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -168,30 +170,33 @@ export const NavItem = styled(Link)`
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   letter-spacing: ${({ theme }) => theme.letterSpacings.kr};
   transition:
-    background-color 0.25s ease,
     color 0.25s ease,
-    transform 0.18s ease;
+    background-color 0.2s ease;
 
   @media (hover: hover) {
-    &:hover {
+    &[data-active='false']:hover {
       background: ${({ theme }) => theme.colors.controlGray};
       color: ${({ theme }) => theme.colors.text};
     }
   }
 
-  &:active {
-    transform: scale(0.98);
-    background: ${({ theme }) => theme.colors.controlGrayPress};
-  }
-
   &[data-active='true'] {
-    background: ${({ theme }) => theme.colors.badgeInfoBg};
     color: ${({ theme }) => theme.colors.accent};
     font-weight: ${({ theme }) => theme.fontWeights.semibold};
   }
 `
 
+export const NavActiveBg = styled(motion.span)`
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: ${({ theme }) => theme.radii.card};
+  background: ${({ theme }) => theme.colors.badgeInfoBg};
+`
+
 export const NavIcon = styled.span`
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -201,6 +206,8 @@ export const NavIcon = styled.span`
 `
 
 export const NavLabel = styled.span`
+  position: relative;
+  z-index: 1;
   white-space: nowrap;
 
   ${Shell}[data-collapsed='true'] & {
@@ -215,6 +222,8 @@ export const NavLabel = styled.span`
 `
 
 export const NavBadge = styled.span`
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   margin-left: auto;
 

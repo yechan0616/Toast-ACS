@@ -2,7 +2,6 @@
 
 import { ApiError } from '@toast-acs/shared'
 import { adminLogin } from 'features/auth/api'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import type { FormEvent } from 'react'
 import { useState } from 'react'
@@ -24,10 +23,12 @@ export function LoginForm() {
       router.replace('/')
     } catch (err) {
       if (err instanceof ApiError && err.code === 'INVALID_CREDENTIALS') {
-        setError('아이디 또는 비밀번호가 올바르지 않습니다.')
+        setError('아이디 또는 비밀번호를 다시 확인해 주세요.')
       } else {
         setError(
-          err instanceof ApiError ? err.message : '로그인에 실패했습니다.',
+          err instanceof ApiError
+            ? err.message
+            : '로그인하지 못했어요. 잠시 후 다시 시도해 주세요.',
         )
       }
     } finally {
@@ -40,7 +41,6 @@ export function LoginForm() {
       <S.Card>
         <S.Header>
           <S.Brand>
-            <Image src='/brand/gf_color.png' alt='' width={24} height={24} />
             <S.BrandName>Toast ACS</S.BrandName>
           </S.Brand>
           <S.Console>Admin Console</S.Console>

@@ -55,7 +55,9 @@ export function DeviceSessions() {
       notify(`발급 코드 ${row.passCode}를 취소했어요.`, 'success')
     } catch (err) {
       notify(
-        err instanceof ApiError ? err.message : '강제 취소에 실패했어요.',
+        err instanceof ApiError
+          ? err.message
+          : '취소하지 못했어요. 잠시 후 다시 시도해 주세요.',
         'danger',
       )
     } finally {
@@ -68,7 +70,7 @@ export function DeviceSessions() {
       <T.PageHeader>
         <div>
           <T.PageTitle>활성 기기</T.PageTitle>
-          <T.PageSub>{rows.length}대 등록됨</T.PageSub>
+          <T.PageSub>{rows.length}대가 등록돼 있어요</T.PageSub>
         </div>
       </T.PageHeader>
 
@@ -135,8 +137,8 @@ export function DeviceSessions() {
       ) : (
         <T.Empty>
           {error && !data
-            ? '활성 기기를 불러오지 못했습니다.'
-            : '활성 기기가 없습니다.'}
+            ? '기기 목록을 불러오지 못했어요.'
+            : '등록된 기기가 아직 없어요.'}
         </T.Empty>
       )}
 
