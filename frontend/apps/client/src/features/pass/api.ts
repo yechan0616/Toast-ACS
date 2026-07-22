@@ -4,6 +4,7 @@ import type {
   PassRequestCreated,
   PassRequestState,
   PassSummary,
+  SeatStatus,
 } from '@toast-acs/shared'
 import { api } from '@toast-acs/shared'
 
@@ -21,4 +22,8 @@ export function createPassRequest(body: PassRequestCreate) {
 
 export function fetchPassRequest(requestId: string, signal?: AbortSignal) {
   return api.get<PassRequestState>(`/api/passes/requests/${requestId}`, signal)
+}
+
+export function fetchSeats(signal?: AbortSignal) {
+  return api.get<SeatStatus[]>('/api/seats', signal)
 }

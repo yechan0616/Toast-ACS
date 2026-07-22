@@ -22,7 +22,11 @@ public class PassDevSeeder implements ApplicationRunner {
         if (passRepository.count() > 0) {
             return;
         }
-        passRepository.save(Pass.create("DEMO-1234", PassType.PERIOD, Instant.now().plus(30, ChronoUnit.DAYS)));
-        passRepository.save(Pass.create("TIME-5678", PassType.TIME, Instant.now().plus(2, ChronoUnit.HOURS)));
+        Pass demo = Pass.create("DEMO-1234", PassType.PERIOD, Instant.now().plus(30, ChronoUnit.DAYS));
+        demo.assignSeat("A3");
+        passRepository.save(demo);
+        Pass time = Pass.create("TIME-5678", PassType.TIME, Instant.now().plus(2, ChronoUnit.HOURS));
+        time.assignSeat("B7");
+        passRepository.save(time);
     }
 }

@@ -25,6 +25,7 @@ export type {
   PassRequestStatus,
   PassSummary,
   PassType,
+  SeatStatus,
   SessionItem,
   SuspectedPass,
 } from './types'

@@ -8,6 +8,7 @@ import com.toastacs.api.domain.admin.dto.PageResponse;
 import com.toastacs.api.domain.admin.dto.SessionItem;
 import com.toastacs.api.domain.alert.Alert;
 import com.toastacs.api.domain.alert.AlertService;
+import com.toastacs.api.domain.entry.Direction;
 import com.toastacs.api.domain.entry.EntryLog;
 import com.toastacs.api.domain.entry.EntryResult;
 import com.toastacs.api.domain.entry.EntryService;
@@ -96,7 +97,8 @@ public class AdminQueryService {
     }
 
     public void openGate() {
-        gateStateService.queueOpen();
+        gateStateService.queueOpen(Direction.IN, null);
+        gateStateService.queueOpen(Direction.OUT, null);
     }
 
     private PageResponse<LogItem> toEntryLogPage(Page<EntryLog> logs) {

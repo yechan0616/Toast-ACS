@@ -23,6 +23,8 @@ public enum ErrorCode {
     GATE_KEY_INVALID(HttpStatus.UNAUTHORIZED, "게이트 키를 다시 확인해 주세요."),
     DEVICE_MISMATCH(HttpStatus.FORBIDDEN, "요청한 기기에서만 등록할 수 있는 코드예요."),
     REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "요청 내역을 찾을 수 없어요."),
+    SEAT_INVALID(HttpStatus.BAD_REQUEST, "좌석을 다시 선택해 주세요."),
+    SEAT_TAKEN(HttpStatus.CONFLICT, "이미 예약된 좌석이에요. 다른 좌석을 선택해 주세요."),
     ALREADY_DECIDED(HttpStatus.CONFLICT, "이미 처리된 요청이에요."),
     TOO_MANY_ATTEMPTS(HttpStatus.TOO_MANY_REQUESTS, "시도가 너무 많아요. 잠시 후 다시 시도해 주세요.");
 

@@ -5,13 +5,13 @@ import java.time.OffsetDateTime;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record PassRequestStatusResponse(String status, String code, String passType, OffsetDateTime expiresAt,
-                                        String rejectReason) {
+                                        String seat, String rejectReason) {
 
     public static PassRequestStatusResponse pending(String status) {
-        return new PassRequestStatusResponse(status, null, null, null, null);
+        return new PassRequestStatusResponse(status, null, null, null, null, null);
     }
 
     public static PassRequestStatusResponse rejected(String status, String rejectReason) {
-        return new PassRequestStatusResponse(status, null, null, null, rejectReason);
+        return new PassRequestStatusResponse(status, null, null, null, null, rejectReason);
     }
 }

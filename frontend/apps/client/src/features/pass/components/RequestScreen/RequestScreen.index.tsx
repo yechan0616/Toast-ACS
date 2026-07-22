@@ -1,11 +1,12 @@
 'use client'
 
+import type { SeatStatus } from '@toast-acs/shared'
 import { ApiError } from '@toast-acs/shared'
 import { fadeUp } from '@toast-acs/ui'
 import { BackHeader } from 'components/BackHeader/BackHeader.index'
 import { BottomCta } from 'components/BottomCta/BottomCta.index'
 import { UnderlineField } from 'components/UnderlineField/UnderlineField.index'
-import { activatePass, createPassRequest } from 'features/pass/api'
+import { activatePass, createPassRequest, fetchSeats } from 'features/pass/api'
 import { formatPhone } from 'features/pass/formatPhone'
 import { saveRecentPass } from 'features/pass/recentPassStorage'
 import {
@@ -17,14 +18,17 @@ import { usePassRequestStatus } from 'features/pass/usePassRequestStatus'
 import { AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import type { FormEvent } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import * as S from './RequestScreen.styled'
 
 const STEP_TITLES = [
   '이름을 입력해주세요',
   '연락처를 입력해주세요',
   '사유를 입력해주세요',
+  '좌석을 선택해주세요',
 ]
+
+const SEAT_STEP = 3
 
 const REGISTER_HELPER = {
   question: '인증번호를 받았나요?',
@@ -34,17 +38,30 @@ const REGISTER_HELPER = {
 
 export function RequestScreen() {
   const router = useRouter()
-  const [requestId, setRequestId] = useState<string | null>(() =>
-    getStoredRequestId(),
-  )
+  const [requestId, setRequestId] = useState<string | null>(null)
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [reason, setReason] = useState('')
+  const [seat, setSeat] = useState<string | null>(null)
+  const [seats, setSeats] = useState<SeatStatus[] | null>(null)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [registering, setRegistering] = useState(false)
   const [registerError, setRegisterError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setRequestId(getStoredRequestId())
+  }, [])
+
+  useEffect(() => {
+    if (step !== SEAT_STEP) return
+    const controller = new AbortController()
+    fetchSeats(controller.signal)
+      .then(setSeats)
+      .catch(() => {})
+    return () => controller.abort()
+  }, [step])
 
   const state = usePassRequestStatus(requestId, () => {
     clearStoredRequestId()
@@ -55,15 +72,17 @@ export function RequestScreen() {
     name.trim().length > 0,
     phone.replace(/\D/g, '').length >= 10,
     reason.trim().length > 0,
+    seat !== null,
   ][step]
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!stepFilled || pending) return
-    if (step < 2) {
+    if (step < SEAT_STEP) {
       setStep(step + 1)
       return
     }
+    if (!seat) return
 
     setPending(true)
     setError(null)
@@ -71,11 +90,18 @@ export function RequestScreen() {
       const created = await createPassRequest({
         applicantName: name.trim(),
         phone,
+        seat,
         reason: reason.trim(),
       })
       storeRequestId(created.requestId)
       setRequestId(created.requestId)
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'SEAT_TAKEN') {
+        setSeat(null)
+        fetchSeats()
+          .then(setSeats)
+          .catch(() => {})
+      }
       setError(
         err instanceof ApiError
           ? err.message
@@ -104,6 +130,7 @@ export function RequestScreen() {
         code: state.code,
         expiresAt: result.expiresAt,
         passType: result.passType,
+        seat: result.seat,
       })
       clearStoredRequestId()
       router.replace('/')
@@ -122,6 +149,8 @@ export function RequestScreen() {
     setRequestId(null)
     setStep(0)
     setReason('')
+    setSeat(null)
+    setSeats(null)
   }
 
   if (requestId) {
@@ -146,7 +175,10 @@ export function RequestScreen() {
             {status === 'APPROVED' && (
               <>
                 <S.Title>인증코드가 발급됐어요</S.Title>
-                <S.Sub>이 기기에서만 등록할 수 있는 코드예요.</S.Sub>
+                <S.Sub>
+                  {state?.seat ? `좌석 ${state.seat} · ` : ''}이 기기에서만
+                  등록할 수 있는 코드예요.
+                </S.Sub>
                 <UnderlineField
                   value={state?.code ?? ''}
                   disabled
@@ -224,13 +256,47 @@ export function RequestScreen() {
               placeholder='출입 목적'
               autoComplete='off'
               autoFocus={step === 2}
-              error={error}
             />
+          )}
+          {step >= SEAT_STEP && (
+            <S.SeatSection>
+              <S.SeatStage>GROUND</S.SeatStage>
+              {seats === null ? (
+                <S.SeatLoading>좌석을 불러오는 중…</S.SeatLoading>
+              ) : (
+                <S.SeatGrid aria-label='좌석 선택'>
+                  {seats.map((item) => (
+                    <S.SeatButton
+                      key={item.seat}
+                      type='button'
+                      disabled={item.taken}
+                      data-selected={seat === item.seat ? 'true' : 'false'}
+                      aria-pressed={seat === item.seat}
+                      onClick={() => setSeat(item.seat)}
+                    >
+                      {item.seat}
+                    </S.SeatButton>
+                  ))}
+                </S.SeatGrid>
+              )}
+              <S.SeatLegend>
+                <S.LegendItem>
+                  <S.LegendDot data-kind='free' /> 선택 가능
+                </S.LegendItem>
+                <S.LegendItem>
+                  <S.LegendDot data-kind='taken' /> 예약됨
+                </S.LegendItem>
+                <S.LegendItem>
+                  <S.LegendDot data-kind='selected' /> 내 좌석
+                </S.LegendItem>
+              </S.SeatLegend>
+              {error && <S.SeatError>{error}</S.SeatError>}
+            </S.SeatSection>
           )}
         </S.Fields>
         <BottomCta
           type='submit'
-          label={step < 2 ? '다음' : pending ? '제출 중…' : '제출'}
+          label={step < SEAT_STEP ? '다음' : pending ? '제출 중…' : '제출'}
           disabled={!stepFilled || pending}
           helper={REGISTER_HELPER}
         />

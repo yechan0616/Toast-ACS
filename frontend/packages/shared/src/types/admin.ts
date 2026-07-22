@@ -35,6 +35,7 @@ export interface PassRequestItem {
   applicantName: string
   phone: string
   passType: PassType | null
+  seat: string | null
   ip: string | null
   reason: string | null
   status: PassRequestStatus

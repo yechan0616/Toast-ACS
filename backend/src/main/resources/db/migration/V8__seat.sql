@@ -1,0 +1,3 @@
+ALTER TABLE pass ADD COLUMN seat VARCHAR(10);
+ALTER TABLE pass_request ADD COLUMN seat VARCHAR(10);
+ALTER TABLE gate_state ADD COLUMN pending_seat VARCHAR(10);

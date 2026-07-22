@@ -3,6 +3,7 @@ export type PassType = 'TIME' | 'PERIOD'
 export interface ActivateResult {
   passType: PassType
   expiresAt: string
+  seat: string | null
 }
 
 export interface PassSummary {
@@ -12,6 +13,7 @@ export interface PassSummary {
   expiresAt: string
   inside: boolean
   entryCount: number
+  seat: string | null
 }
 
 export type PassRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
@@ -19,6 +21,7 @@ export type PassRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 export interface PassRequestCreate {
   applicantName: string
   phone: string
+  seat: string
   reason?: string
 }
 
@@ -31,5 +34,11 @@ export interface PassRequestState {
   code?: string
   passType?: PassType
   expiresAt?: string
+  seat?: string
   rejectReason?: string
+}
+
+export interface SeatStatus {
+  seat: string
+  taken: boolean
 }

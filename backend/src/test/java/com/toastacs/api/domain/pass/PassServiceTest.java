@@ -40,12 +40,15 @@ class PassServiceTest {
     @Mock
     private com.toastacs.api.domain.entry.EntryLogRepository entryLogRepository;
 
+    @Mock
+    private com.toastacs.api.domain.gate.GateStateService gateStateService;
+
     private PassService passService;
 
     @BeforeEach
     void setUp() {
         passService = new PassService(passRepository, deviceSessionService, entryLogRepository,
-                "테스트 서비스", "테스트 게이트");
+                gateStateService, "테스트 서비스", "테스트 게이트");
     }
 
     @Test
@@ -87,7 +90,7 @@ class PassServiceTest {
     }
 
     @Test
-    @DisplayName("귀속이 없는 시드 이용권은 쿠키 없이도 활성화된다")
+    @DisplayName("귀속이 없는 시드 이용권은 쿠키 없이 활성화하면 새 기기 토큰을 발급해 잠근다")
     void activateUnboundPassWithoutToken() {
         Pass pass = Pass.create(CODE, PassType.PERIOD, Instant.now().plus(30, ChronoUnit.DAYS));
         given(passRepository.findByCode(CODE)).willReturn(Optional.of(pass));
@@ -97,6 +100,38 @@ class PassServiceTest {
         ActivationResult result = passService.activate(CODE, USER_AGENT, null);
 
         assertThat(result.cookieValue()).isEqualTo("session-cookie");
+        assertThat(pass.getDeviceToken()).isNotNull();
+        assertThat(result.deviceCookieValue()).isEqualTo(pass.getDeviceToken());
+    }
+
+    @Test
+    @DisplayName("귀속이 없는 이용권은 최초 활성화한 기기에 잠기고 이후 다른 기기는 거부된다")
+    void activateUnboundPassLocksToFirstDevice() {
+        Pass pass = Pass.create(CODE, PassType.PERIOD, Instant.now().plus(30, ChronoUnit.DAYS));
+        given(passRepository.findByCode(CODE)).willReturn(Optional.of(pass));
+        given(deviceSessionService.issue(pass, USER_AGENT))
+                .willReturn(new IssuedSession(null, "session-cookie"));
+
+        ActivationResult result = passService.activate(CODE, USER_AGENT, DEVICE_TOKEN);
+
+        assertThat(pass.getDeviceToken()).isEqualTo(DEVICE_TOKEN);
+        assertThat(result.deviceCookieValue()).isNull();
+        assertThatThrownBy(() -> passService.activate(CODE, USER_AGENT, "other-token"))
+                .isInstanceOf(ApiException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.DEVICE_MISMATCH);
+    }
+
+    @Test
+    @DisplayName("기기 해제는 귀속을 지우고 활성 세션을 종료한다")
+    void unbindDeviceClearsBindingAndKillsSessions() {
+        Pass pass = boundPass();
+        given(passRepository.findByCode(CODE)).willReturn(Optional.of(pass));
+
+        passService.unbindDevice(CODE);
+
+        assertThat(pass.getDeviceToken()).isNull();
+        verify(deviceSessionService).killActiveSessions(pass);
     }
 
     @Test

@@ -36,6 +36,7 @@ export function RegisterScreen() {
         code: trimmed,
         expiresAt: result.expiresAt,
         passType: result.passType,
+        seat: result.seat,
       })
       router.replace('/')
     } catch (err) {

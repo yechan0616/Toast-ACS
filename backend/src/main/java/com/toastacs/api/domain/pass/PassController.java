@@ -29,6 +29,7 @@ public class PassController {
 
     private final PassService passService;
     private final SessionCookieFactory sessionCookieFactory;
+    private final DeviceCookieFactory deviceCookieFactory;
     private final AttemptLimiter attemptLimiter;
 
     @PostMapping("/passes/activate")
@@ -46,9 +47,13 @@ public class PassController {
             throw e;
         }
         attemptLimiter.recordSuccess(key);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, sessionCookieFactory.create(result.cookieValue()).toString())
-                .body(result.response());
+        ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, sessionCookieFactory.create(result.cookieValue()).toString());
+        if (result.deviceCookieValue() != null) {
+            builder.header(HttpHeaders.SET_COOKIE,
+                    deviceCookieFactory.create(result.deviceCookieValue()).toString());
+        }
+        return builder.body(result.response());
     }
 
     @GetMapping("/me")
