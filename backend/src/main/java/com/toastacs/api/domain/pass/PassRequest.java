@@ -66,7 +66,10 @@ public class PassRequest extends BaseTimeEntity {
     @Column(name = "device_token", length = 64)
     private String deviceToken;
 
-    public static PassRequest create(String applicantName, String phone, String ip, String reason) {
+    @Column(length = 10)
+    private String seat;
+
+    public static PassRequest create(String applicantName, String phone, String ip, String reason, String seat) {
         PassRequest request = new PassRequest();
         request.publicId = UUID.randomUUID();
         request.applicantName = applicantName;
@@ -74,6 +77,7 @@ public class PassRequest extends BaseTimeEntity {
         request.status = PassRequestStatus.PENDING;
         request.ip = ip;
         request.reason = reason;
+        request.seat = seat;
         request.deviceToken = UUID.randomUUID().toString();
         return request;
     }

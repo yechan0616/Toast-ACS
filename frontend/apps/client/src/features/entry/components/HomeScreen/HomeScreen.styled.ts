@@ -59,6 +59,12 @@ export const CardGate = styled.p`
   ${({ theme }) => typo(theme.typography.mo.caption.c1, theme.fontWeights.regular)}
 `
 
+export const CardSeat = styled.p`
+  margin: 6px 0 0;
+  color: ${({ theme }) => theme.colors.accent};
+  ${({ theme }) => typo(theme.typography.mo.caption.c1, theme.fontWeights.semibold)}
+`
+
 export const CardExpiry = styled.p`
   margin: 6px 0 0;
   color: ${({ theme }) => theme.colors.text};

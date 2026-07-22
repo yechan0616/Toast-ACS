@@ -3,74 +3,77 @@
 
 const int PIN_LINK_RX = 2;
 const int PIN_LINK_TX = 3;
-const int PIN_SERVO_L = 13;
-const int PIN_SERVO_R = 12;
-const int PIN_RELAY = 11;
-const int PIN_LED_OK = 10;
-const int PIN_LED_NG = 9;
+const int PIN_SERVO_IN = 13;
+const int PIN_SERVO_OUT = 12;
 
-const int SERVO_STOP_DEG = 90;
-const int SERVO_OPEN_SPIN_DEG = 0;
-const int SERVO_CLOSE_SPIN_DEG = 180;
-const unsigned long SERVO_SPIN_MS = 400;
+const int SERVO_CLOSE_DEG = 0;
+const int SERVO_OPEN_DEG = 90;
+const unsigned long SERVO_MOVE_MS = 500;
 const unsigned long LINK_TIMEOUT_MS = 1500;
 
-Servo servoL;
-Servo servoR;
+struct Flap {
+  Servo servo;
+  int pin;
+  int openDeg;
+  int closeDeg;
+  bool commanded;
+  bool doorOpen;
+  bool moving;
+  bool moveTarget;
+  unsigned long moveUntil;
+};
+
+Flap flapIn;
+Flap flapOut;
 SoftwareSerial link(PIN_LINK_RX, PIN_LINK_TX);
 
-bool gateOpen = false;
-bool alarmActive = false;
-bool doorOpen = false;
-bool spinning = false;
-bool spinTarget = false;
-unsigned long spinUntil = 0;
 unsigned long lastMsgAt = 0;
 String line;
 
 void setup() {
   Serial.begin(115200);
   link.begin(9600);
-  pinMode(PIN_RELAY, OUTPUT);
-  pinMode(PIN_LED_OK, OUTPUT);
-  pinMode(PIN_LED_NG, OUTPUT);
-  Serial.println("uno-actuator 시작 — 서보 2개(D13/D12), 부팅 전 플랩을 닫힘 위치로 맞춰 두세요");
+
+  flapIn.pin = PIN_SERVO_IN;
+  flapIn.openDeg = SERVO_OPEN_DEG;
+  flapIn.closeDeg = SERVO_CLOSE_DEG;
+  flapOut.pin = PIN_SERVO_OUT;
+  flapOut.openDeg = SERVO_OPEN_DEG;
+  flapOut.closeDeg = SERVO_CLOSE_DEG;
+
+  startMove(flapIn, false);
+  startMove(flapOut, false);
+
+  Serial.println("uno-actuator 시작 — 입장 서보 D13 · 퇴장 서보 D12, 0도=닫힘 / 90도=열림");
 }
 
 void handleLine(const String& msg) {
-  if (msg.length() < 3 || msg[0] != 'S') return;
-  gateOpen = msg[1] == '1';
-  alarmActive = msg[2] == '1';
+  if (msg.length() < 4 || msg[0] != 'S') return;
+  flapIn.commanded = msg[1] == '1';
+  flapOut.commanded = msg[2] == '1';
   lastMsgAt = millis();
 }
 
-void startSpin(bool opening) {
-  spinTarget = opening;
-  servoL.attach(PIN_SERVO_L);
-  servoR.attach(PIN_SERVO_R);
-  int dir = opening ? SERVO_OPEN_SPIN_DEG : SERVO_CLOSE_SPIN_DEG;
-  int mirror = opening ? SERVO_CLOSE_SPIN_DEG : SERVO_OPEN_SPIN_DEG;
-  servoL.write(dir);
-  servoR.write(mirror);
-  spinUntil = millis() + SERVO_SPIN_MS;
-  spinning = true;
+void startMove(Flap& flap, bool opening) {
+  flap.moveTarget = opening;
+  flap.servo.attach(flap.pin);
+  flap.servo.write(opening ? flap.openDeg : flap.closeDeg);
+  flap.moveUntil = millis() + SERVO_MOVE_MS;
+  flap.moving = true;
 }
 
-void stopSpin() {
-  servoL.write(SERVO_STOP_DEG);
-  servoR.write(SERVO_STOP_DEG);
-  servoL.detach();
-  servoR.detach();
-  doorOpen = spinTarget;
-  spinning = false;
+void finishMove(Flap& flap) {
+  flap.servo.detach();
+  flap.doorOpen = flap.moveTarget;
+  flap.moving = false;
 }
 
-void updateServos() {
-  if (spinning) {
-    if (millis() >= spinUntil) stopSpin();
+void updateFlap(Flap& flap) {
+  if (flap.moving) {
+    if (millis() >= flap.moveUntil) finishMove(flap);
     return;
   }
-  if (gateOpen != doorOpen) startSpin(gateOpen);
+  if (flap.commanded != flap.doorOpen) startMove(flap, flap.commanded);
 }
 
 void loop() {
@@ -86,13 +89,10 @@ void loop() {
   }
 
   if (lastMsgAt != 0 && millis() - lastMsgAt > LINK_TIMEOUT_MS) {
-    gateOpen = false;
-    alarmActive = false;
+    flapIn.commanded = false;
+    flapOut.commanded = false;
   }
 
-  updateServos();
-
-  digitalWrite(PIN_RELAY, gateOpen ? HIGH : LOW);
-  digitalWrite(PIN_LED_OK, gateOpen ? HIGH : LOW);
-  digitalWrite(PIN_LED_NG, alarmActive ? HIGH : LOW);
+  updateFlap(flapIn);
+  updateFlap(flapOut);
 }

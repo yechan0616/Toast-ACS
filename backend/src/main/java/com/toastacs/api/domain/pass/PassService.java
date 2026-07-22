@@ -3,6 +3,7 @@ package com.toastacs.api.domain.pass;
 import com.toastacs.api.domain.entry.Direction;
 import com.toastacs.api.domain.entry.EntryLogRepository;
 import com.toastacs.api.domain.entry.EntryResult;
+import com.toastacs.api.domain.gate.GateStateService;
 import com.toastacs.api.domain.pass.dto.ActivateResponse;
 import com.toastacs.api.domain.pass.dto.ActivationResult;
 import com.toastacs.api.domain.pass.dto.MeResponse;
@@ -18,6 +19,7 @@ import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,15 +33,17 @@ public class PassService {
     private final PassRepository passRepository;
     private final DeviceSessionService deviceSessionService;
     private final EntryLogRepository entryLogRepository;
+    private final GateStateService gateStateService;
     private final String serviceName;
     private final String gateName;
 
     public PassService(PassRepository passRepository, DeviceSessionService deviceSessionService,
-            EntryLogRepository entryLogRepository,
+            EntryLogRepository entryLogRepository, GateStateService gateStateService,
             @Value("${acs.service-name}") String serviceName, @Value("${acs.gate-name}") String gateName) {
         this.passRepository = passRepository;
         this.deviceSessionService = deviceSessionService;
         this.entryLogRepository = entryLogRepository;
+        this.gateStateService = gateStateService;
         this.serviceName = serviceName;
         this.gateName = gateName;
     }
@@ -47,20 +51,29 @@ public class PassService {
     @Transactional
     public ActivationResult activate(String code, String userAgent, String deviceToken) {
         Pass pass = passRepository.findByCode(code)
-                .orElseThrow(() -> new ApiException(ErrorCode.PASS_NOT_FOUND));
+                .orElseThrow(() -> denyActivation(new ApiException(ErrorCode.PASS_NOT_FOUND)));
         if (pass.isRevoked()) {
-            throw new ApiException(ErrorCode.PASS_REVOKED,
-                    "%s\n사유: %s".formatted(ErrorCode.PASS_REVOKED.getMessage(), pass.getRevokeReason()));
+            throw denyActivation(new ApiException(ErrorCode.PASS_REVOKED,
+                    "%s\n사유: %s".formatted(ErrorCode.PASS_REVOKED.getMessage(), pass.getRevokeReason())));
         }
         if (pass.isExpired(Instant.now())) {
-            throw new ApiException(ErrorCode.PASS_EXPIRED);
+            throw denyActivation(new ApiException(ErrorCode.PASS_EXPIRED));
         }
         if (pass.isBoundToOtherDevice(deviceToken)) {
-            throw new ApiException(ErrorCode.DEVICE_MISMATCH);
+            throw denyActivation(new ApiException(ErrorCode.DEVICE_MISMATCH));
+        }
+        String issuedDeviceToken = null;
+        if (pass.getDeviceToken() == null) {
+            String tokenToBind = deviceToken;
+            if (tokenToBind == null || tokenToBind.isBlank()) {
+                tokenToBind = UUID.randomUUID().toString();
+                issuedDeviceToken = tokenToBind;
+            }
+            pass.bindDevice(tokenToBind);
         }
         IssuedSession issued = deviceSessionService.issue(pass, userAgent);
-        return new ActivationResult(issued.cookieValue(),
-                new ActivateResponse(pass.getType().name(), toKst(pass.getExpiresAt())));
+        return new ActivationResult(issued.cookieValue(), issuedDeviceToken,
+                new ActivateResponse(pass.getType().name(), toKst(pass.getExpiresAt()), pass.getSeat()));
     }
 
     @Transactional(readOnly = true)
@@ -70,7 +83,7 @@ public class PassService {
         long entryCount = entryLogRepository.countByPassIdAndResult(pass.getId(), EntryResult.ALLOWED);
         return new MeResult(deviceSessionService.reissueCookie(verified.session()),
                 new MeResponse(serviceName, gateName, pass.getType().name(), toKst(pass.getExpiresAt()),
-                        pass.isInside(), entryCount));
+                        pass.isInside(), entryCount, pass.getSeat()));
     }
 
     @Transactional
@@ -78,6 +91,14 @@ public class PassService {
         Pass pass = passRepository.findByCode(code)
                 .orElseThrow(() -> new ApiException(ErrorCode.PASS_NOT_FOUND));
         pass.revoke(reason);
+        deviceSessionService.killActiveSessions(pass);
+    }
+
+    @Transactional
+    public void unbindDevice(String code) {
+        Pass pass = passRepository.findByCode(code)
+                .orElseThrow(() -> new ApiException(ErrorCode.PASS_NOT_FOUND));
+        pass.unbindDevice();
         deviceSessionService.killActiveSessions(pass);
     }
 
@@ -105,6 +126,11 @@ public class PassService {
         }
         return passRepository.findAllById(ids).stream()
                 .collect(Collectors.toMap(Pass::getId, Pass::getCode));
+    }
+
+    private ApiException denyActivation(ApiException exception) {
+        gateStateService.notifyDenied(exception.getErrorCode(), null);
+        return exception;
     }
 
     private OffsetDateTime toKst(Instant instant) {

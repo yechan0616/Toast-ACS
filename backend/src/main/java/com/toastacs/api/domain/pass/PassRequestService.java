@@ -32,12 +32,15 @@ public class PassRequestService {
 
     private final PassRequestRepository passRequestRepository;
     private final PassRepository passRepository;
+    private final SeatService seatService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Transactional
     public PassRequestCreateResult request(PassRequestCreateRequest request, String ip) {
+        String seat = request.seat().trim();
+        seatService.validateSelectable(seat);
         PassRequest saved = passRequestRepository.save(PassRequest.create(
-                request.applicantName().trim(), request.phone().trim(), ip, normalize(request.reason())));
+                request.applicantName().trim(), request.phone().trim(), ip, normalize(request.reason()), seat));
         return new PassRequestCreateResult(saved.getDeviceToken(),
                 new PassRequestCreateResponse(saved.getPublicId()));
     }
@@ -51,7 +54,7 @@ public class PassRequestService {
                     request.getRejectReason());
             case APPROVED -> new PassRequestStatusResponse(request.getStatus().name(),
                     request.getPass().getCode(), request.getPass().getType().name(),
-                    toKst(request.getPass().getExpiresAt()), null);
+                    toKst(request.getPass().getExpiresAt()), request.getPass().getSeat(), null);
         };
     }
 
@@ -59,6 +62,7 @@ public class PassRequestService {
     public PassRequestApproveResponse approve(UUID requestId, PassType passType) {
         PassRequest request = findByPublicId(requestId);
         Pass pass = Pass.create(generateUniqueCode(), passType, calculateExpiresAt(passType));
+        pass.assignSeat(seatService.resolveForApproval(request.getSeat()));
         request.approve(pass);
         passRepository.save(pass);
         return new PassRequestApproveResponse(pass.getCode(), toKst(pass.getExpiresAt()));
@@ -90,6 +94,7 @@ public class PassRequestService {
                 .map(request -> new PassRequestItem(request.getPublicId(), request.getApplicantName(),
                         request.getPhone(),
                         request.getPassType() == null ? null : request.getPassType().name(),
+                        request.getSeat(),
                         request.getIp(), request.getReason(), request.getStatus().name(),
                         request.getPass() == null ? null : request.getPass().getCode(),
                         request.getRejectReason(), toKst(request.getCreatedAt()), toKst(request.getDecidedAt())))

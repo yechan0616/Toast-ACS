@@ -1,6 +1,7 @@
 #pragma once
 
-// 통신 모드예요. 0이면 USB 유선(맥북 브리지 경유, 기본), 1이면 Wi-Fi로 직접 접속해요.
+// 통신 모드예요. 1이면 Wi-Fi 직결(대회 기본 시나리오 — 컴퓨터 불필요),
+// 0이면 USB 유선(맥북 브리지 경유 — 핫스팟이 안 붙을 때 백업).
 #define USE_WIFI 0
 
 // 아래 값은 Wi-Fi 모드(USE_WIFI 1)에서만 써요.
@@ -8,6 +9,7 @@
 // 브리지 기본값이 로컬 백엔드(localhost:8080, dev-gate-key-change-me)와 같아서
 // 로컬 시연에서는 이 파일을 그대로 둬도 돼요.
 
+// 폰 핫스팟 (대회 기본)
 #define WIFI_SSID "hotspot-name"
 #define WIFI_PASS "password"
 
@@ -15,5 +17,8 @@
 #define WIFI_SSID_FALLBACK ""
 #define WIFI_PASS_FALLBACK ""
 
+// 서버 주소 — 둘 중 하나:
+//   맥북 로컬:        "http://<맥IP>:8080"  (맥북도 같은 핫스팟에 물릴 것)
+//   cloudflared 터널: "https://<터널주소>"   (폰은 셀룰러 그대로 사용 가능)
 #define API_BASE "https://api.acs.example.com"
 #define GATE_KEY "change-me"

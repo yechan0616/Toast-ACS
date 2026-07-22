@@ -14,6 +14,7 @@ import { denialMessage, needsReauth } from 'features/entry/denialMessage'
 import { formatDateTime } from 'features/entry/formatDateTime'
 import type { EntryFeedback } from 'features/entry/types'
 import { activatePass, fetchMe } from 'features/pass/api'
+import type { RecentPass } from 'features/pass/recentPassStorage'
 import {
   getRecentPass,
   markRecentPassExpired,
@@ -62,10 +63,13 @@ export function HomeScreen() {
   const [summary, setSummary] = useState<PassSummary | null>(null)
   const [feedback, setFeedback] = useState<EntryFeedback | null>(null)
   const [pending, setPending] = useState(false)
-  const [requestId, setRequestId] = useState<string | null>(() =>
-    getStoredRequestId(),
-  )
-  const [recentPass, setRecentPass] = useState(() => getRecentPass())
+  const [requestId, setRequestId] = useState<string | null>(null)
+  const [recentPass, setRecentPass] = useState<RecentPass | null>(null)
+
+  useEffect(() => {
+    setRequestId(getStoredRequestId())
+    setRecentPass(getRecentPass())
+  }, [])
 
   const requestState = usePassRequestStatus(
     loading || summary ? null : requestId,
@@ -84,6 +88,7 @@ export function HomeScreen() {
         serviceName: me.serviceName,
         gateName: me.gateName,
         passType: me.passType,
+        seat: me.seat,
         expiresAt: me.expiresAt,
         expired: false,
       }
@@ -292,6 +297,7 @@ export function HomeScreen() {
           <S.ServiceCard>
             <S.CardService>{summary.serviceName}</S.CardService>
             <S.CardGate>{summary.gateName}</S.CardGate>
+            {summary.seat && <S.CardSeat>좌석 {summary.seat}</S.CardSeat>}
             <S.CardExpiry>
               {expiryLine(summary.expiresAt, summary.passType)}
             </S.CardExpiry>
@@ -306,6 +312,7 @@ export function HomeScreen() {
             {recentPass.gateName && (
               <S.CardGate>{recentPass.gateName}</S.CardGate>
             )}
+            {recentPass.seat && <S.CardSeat>좌석 {recentPass.seat}</S.CardSeat>}
             <S.CardExpiry>
               {expiryLine(recentPass.expiresAt, recentPass.passType)}
             </S.CardExpiry>

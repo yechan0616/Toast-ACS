@@ -15,6 +15,8 @@ export type ErrorCode =
   | 'DEVICE_MISMATCH'
   | 'INVALID_REQUEST'
   | 'REQUEST_NOT_FOUND'
+  | 'SEAT_INVALID'
+  | 'SEAT_TAKEN'
   | 'ALREADY_DECIDED'
   | 'TOO_MANY_ATTEMPTS'
 

@@ -2,9 +2,12 @@ package com.toastacs.api.domain.gate;
 
 import com.toastacs.api.domain.alert.AlertService;
 import com.toastacs.api.domain.alert.AlertType;
+import com.toastacs.api.domain.entry.Direction;
 import com.toastacs.api.domain.gate.dto.GatePollRequest;
 import com.toastacs.api.domain.gate.dto.GatePollResponse;
 import com.toastacs.api.domain.gate.dto.GateStatus;
+import com.toastacs.api.domain.pass.SeatService;
+import com.toastacs.api.global.error.ErrorCode;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -14,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -28,6 +32,7 @@ public class GateStateService {
 
     private final GateStateRepository gateStateRepository;
     private final AlertService alertService;
+    private final SeatService seatService;
     private final Clock clock;
 
     private final AtomicBoolean offlineAlerted = new AtomicBoolean(false);
@@ -39,28 +44,51 @@ public class GateStateService {
         Instant now = clock.instant();
         state.heartbeat(now);
         offlineAlerted.set(false);
-        if (request.ultrasonic()) {
-            state.detectPresence(now);
+        if (request.ultrasonicIn()) {
+            state.detectPresence(Direction.IN, now);
         }
-        boolean open = state.consumeOpen();
+        if (request.ultrasonicOut()) {
+            state.detectPresence(Direction.OUT, now);
+        }
+        boolean openIn = state.consumeOpen(Direction.IN);
+        boolean openOut = state.consumeOpen(Direction.OUT);
         boolean alarm = state.consumeAlarm();
-        if (open) {
+        String seat = state.consumeSeat();
+        String denyIn = state.consumeDeny(Direction.IN);
+        String denyOut = state.consumeDeny(Direction.OUT);
+        if (openIn || openOut) {
             lastOpenConsumedAt.set(now);
         }
         handlePassedCount(request.passedCount(), now);
-        return new GatePollResponse(open, alarm);
+        return new GatePollResponse(openIn, openOut, alarm, openIn ? seat : null,
+                seatService.occupancyMask(), denyIn, denyOut);
     }
 
     @Transactional(readOnly = true)
-    public boolean isPresenceDetected() {
-        Instant ultrasonicAt = loadState().getUltrasonicAt();
+    public boolean isPresenceDetected(Direction direction) {
+        Instant ultrasonicAt = loadState().getUltrasonicAt(direction);
         return ultrasonicAt != null
                 && Duration.between(ultrasonicAt, clock.instant()).compareTo(PRESENCE_WINDOW) <= 0;
     }
 
     @Transactional
-    public void queueOpen() {
-        loadState().queueOpen();
+    public void queueOpen(Direction direction, String seat) {
+        loadState().queueOpen(direction, seat);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void notifyDenied(ErrorCode code, Direction direction) {
+        String label = GateDenyLabels.labelFor(code);
+        if (label == null) {
+            return;
+        }
+        GateState state = loadState();
+        if (GateDenyLabels.isDirectional(code) && direction != null) {
+            state.queueDeny(direction, label);
+        } else {
+            state.queueDeny(Direction.IN, label);
+            state.queueDeny(Direction.OUT, label);
+        }
     }
 
     @Transactional(readOnly = true)

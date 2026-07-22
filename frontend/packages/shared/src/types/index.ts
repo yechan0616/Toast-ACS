@@ -27,4 +27,5 @@ export type {
   PassRequestStatus,
   PassSummary,
   PassType,
+  SeatStatus,
 } from './pass'

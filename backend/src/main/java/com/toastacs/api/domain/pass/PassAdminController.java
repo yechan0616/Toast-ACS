@@ -22,4 +22,10 @@ public class PassAdminController {
         passService.revoke(code, request.reason());
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{code}/unbind-device")
+    public ResponseEntity<Void> unbindDevice(@PathVariable String code) {
+        passService.unbindDevice(code);
+        return ResponseEntity.noContent().build();
+    }
 }

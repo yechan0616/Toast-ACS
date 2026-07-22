@@ -143,6 +143,7 @@ export function PassRequests() {
             <tr>
               <Th>신청자</Th>
               <Th>연락처</Th>
+              <Th>좌석</Th>
               <Th>IP</Th>
               <Th>신청 시각</Th>
               <Th>처리</Th>
@@ -154,6 +155,7 @@ export function PassRequests() {
                 <tr>
                   <S.NameTd>{row.applicantName}</S.NameTd>
                   <Td>{row.phone}</Td>
+                  <Td>{row.seat ?? '-'}</Td>
                   <Td>{row.ip ?? '-'}</Td>
                   <Td>{formatTime(row.createdAt)}</Td>
                   <Td>
@@ -178,12 +180,12 @@ export function PassRequests() {
                 </tr>
                 {row.reason && (
                   <tr>
-                    <S.ReasonTd colSpan={5}>신청 사유: {row.reason}</S.ReasonTd>
+                    <S.ReasonTd colSpan={6}>신청 사유: {row.reason}</S.ReasonTd>
                   </tr>
                 )}
                 {approvingId === row.requestId && (
                   <tr>
-                    <S.FormTd colSpan={5}>
+                    <S.FormTd colSpan={6}>
                       <S.ApproveForm>
                         <S.TypeOptions>
                           {PASS_TYPE_OPTIONS.map((option) => (
@@ -221,7 +223,7 @@ export function PassRequests() {
                 )}
                 {rejectingId === row.requestId && (
                   <tr>
-                    <S.FormTd colSpan={5}>
+                    <S.FormTd colSpan={6}>
                       <S.RejectForm>
                         <TextField
                           size='small'

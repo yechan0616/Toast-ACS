@@ -4,6 +4,7 @@ export interface RecentPass {
   code: string
   expiresAt: string
   passType?: PassType
+  seat?: string | null
   serviceName?: string
   gateName?: string
   expired?: boolean

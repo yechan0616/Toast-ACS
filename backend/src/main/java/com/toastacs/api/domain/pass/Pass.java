@@ -42,6 +42,9 @@ public class Pass extends BaseTimeEntity {
     @Column(name = "device_token", length = 64)
     private String deviceToken;
 
+    @Column(length = 10)
+    private String seat;
+
     @Column(name = "revoked_at")
     private Instant revokedAt;
 
@@ -79,6 +82,14 @@ public class Pass extends BaseTimeEntity {
 
     void bindDevice(String deviceToken) {
         this.deviceToken = deviceToken;
+    }
+
+    void unbindDevice() {
+        this.deviceToken = null;
+    }
+
+    void assignSeat(String seat) {
+        this.seat = seat;
     }
 
     public void enter() {

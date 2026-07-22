@@ -58,6 +58,7 @@ class EntryServiceTest {
     void setUp() {
         pass = Pass.create("DEMO-1234", PassType.PERIOD, Instant.now().plus(30, ChronoUnit.DAYS));
         ReflectionTestUtils.setField(pass, "id", 1L);
+        ReflectionTestUtils.setField(pass, "seat", "A3");
         session = DeviceSession.create(pass, "session-secret", "test-agent");
         ReflectionTestUtils.setField(session, "id", 10L);
         verified = new VerifiedSession(session, 100L);
@@ -82,7 +83,7 @@ class EntryServiceTest {
     @DisplayName("모든 검사 통과 후 창 선점 경쟁에서 지면 TOKEN_REUSED로 거부한다")
     void denyReusedToken() {
         given(deviceSessionService.verify(TOKEN)).willReturn(verified);
-        given(gateStateService.isPresenceDetected()).willReturn(true);
+        given(gateStateService.isPresenceDetected(Direction.IN)).willReturn(true);
         willThrow(new ApiException(ErrorCode.TOKEN_REUSED)).given(deviceSessionService).claimWindow(verified);
 
         assertDenied(() -> entryService.attempt(TOKEN, Direction.IN), ErrorCode.TOKEN_REUSED);
@@ -118,18 +119,29 @@ class EntryServiceTest {
     @DisplayName("6단계 - 초음파 현장 확인 실패면 NO_PRESENCE로 거부하고 창을 소비하지 않는다")
     void denyWithoutPresence() {
         given(deviceSessionService.verify(TOKEN)).willReturn(verified);
-        given(gateStateService.isPresenceDetected()).willReturn(false);
+        given(gateStateService.isPresenceDetected(Direction.IN)).willReturn(false);
 
         assertDenied(() -> entryService.attempt(TOKEN, Direction.IN), ErrorCode.NO_PRESENCE);
-        verify(gateStateService, never()).queueOpen();
+        verify(gateStateService, never()).queueOpen(any(), any());
         verify(deviceSessionService, never()).claimWindow(any());
+    }
+
+    @Test
+    @DisplayName("입장 게이트 초음파만 감지된 상태의 퇴장 요청은 NO_PRESENCE로 거부한다")
+    void denyExitAtEntryGate() {
+        pass.enter();
+        given(deviceSessionService.verify(TOKEN)).willReturn(verified);
+        given(gateStateService.isPresenceDetected(Direction.OUT)).willReturn(false);
+
+        assertDenied(() -> entryService.attempt(TOKEN, Direction.OUT), ErrorCode.NO_PRESENCE);
+        verify(gateStateService, never()).queueOpen(any(), any());
     }
 
     @Test
     @DisplayName("전 단계 통과 시 입장을 허용하고 창 소비·재실 반전·개방 큐·허용 로그를 수행한다")
     void allowEntry() {
         given(deviceSessionService.verify(TOKEN)).willReturn(verified);
-        given(gateStateService.isPresenceDetected()).willReturn(true);
+        given(gateStateService.isPresenceDetected(Direction.IN)).willReturn(true);
         given(deviceSessionService.reissueCookie(session)).willReturn("rotated-cookie");
 
         EntryOutcome outcome = entryService.attempt(TOKEN, Direction.IN);
@@ -139,7 +151,7 @@ class EntryServiceTest {
         assertThat(outcome.cookieValue()).isEqualTo("rotated-cookie");
         verify(deviceSessionService).claimWindow(verified);
         verify(passService).applyEntry(1L, Direction.IN);
-        verify(gateStateService).queueOpen();
+        verify(gateStateService).queueOpen(Direction.IN, "A3");
         ArgumentCaptor<EntryLog> captor = ArgumentCaptor.forClass(EntryLog.class);
         verify(entryLogRepository).save(captor.capture());
         assertThat(captor.getValue().getResult()).isEqualTo(EntryResult.ALLOWED);
@@ -152,14 +164,14 @@ class EntryServiceTest {
     void allowExit() {
         pass.enter();
         given(deviceSessionService.verify(TOKEN)).willReturn(verified);
-        given(gateStateService.isPresenceDetected()).willReturn(true);
+        given(gateStateService.isPresenceDetected(Direction.OUT)).willReturn(true);
         given(deviceSessionService.reissueCookie(session)).willReturn("rotated-cookie");
 
         EntryOutcome outcome = entryService.attempt(TOKEN, Direction.OUT);
 
         assertThat(outcome.response().result()).isEqualTo("ALLOWED");
         verify(passService).applyEntry(1L, Direction.OUT);
-        verify(gateStateService).queueOpen();
+        verify(gateStateService).queueOpen(Direction.OUT, null);
     }
 
     private void assertDenied(Runnable call, ErrorCode expected) {
@@ -172,6 +184,8 @@ class EntryServiceTest {
         EntryLog last = captor.getValue();
         assertThat(last.getResult()).isEqualTo(EntryResult.DENIED);
         assertThat(last.getDenyCode()).isEqualTo(expected.name());
+        verify(gateStateService, org.mockito.Mockito.atLeastOnce())
+                .notifyDenied(org.mockito.ArgumentMatchers.eq(expected), any());
         verify(passService, never()).applyEntry(any(), any());
     }
 }

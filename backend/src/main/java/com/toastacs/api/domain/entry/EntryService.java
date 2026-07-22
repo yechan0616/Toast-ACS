@@ -47,7 +47,7 @@ public class EntryService {
             if (direction == Direction.OUT && !pass.isInside()) {
                 throw new ApiException(ErrorCode.NOT_INSIDE);
             }
-            if (!gateStateService.isPresenceDetected()) {
+            if (!gateStateService.isPresenceDetected(direction)) {
                 throw new ApiException(ErrorCode.NO_PRESENCE);
             }
             deviceSessionService.claimWindow(verified);
@@ -58,7 +58,8 @@ public class EntryService {
         }
 
         passService.applyEntry(verified.session().getPass().getId(), direction);
-        gateStateService.queueOpen();
+        gateStateService.queueOpen(direction,
+                direction == Direction.IN ? verified.session().getPass().getSeat() : null);
         entryLogRepository.save(EntryLog.allowed(
                 verified.session().getPass().getId(), verified.session().getId(), direction));
         return new EntryOutcome(
@@ -98,6 +99,7 @@ public class EntryService {
 
     private ApiException deny(Long passId, Direction direction, ErrorCode code, Long sessionId) {
         entryLogRepository.save(EntryLog.denied(passId, sessionId, direction, code));
+        gateStateService.notifyDenied(code, direction);
         return new ApiException(code);
     }
 }
